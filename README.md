@@ -1,7 +1,5 @@
 # Knaeckebot - Desktop Automation Tool
 
-![Knaeckebot Logo](docs/images/logo.png) *(Insert your logo here, if available)*
-
 Knaeckebot is a powerful desktop automation tool developed with .NET 8 and WPF. It allows you to record, create, and execute sequences of mouse and keyboard inputs to automate repetitive tasks on your computer.
 
 ## ✨ Features
@@ -16,10 +14,9 @@ Knaeckebot is a powerful desktop automation tool developed with .NET 8 and WPF. 
 - **Custom Delays**: Precise timing control between actions
 
 ## 🖼️ Screenshots
+![image](https://github.com/user-attachments/assets/762acec4-b98a-401a-ab96-786dd1b94479)
+![image](https://github.com/user-attachments/assets/53ded1aa-ea39-4629-a07e-6ad3a048ebfe)
 
-![Main Window](docs/images/main-window.png) *(Insert a screenshot of the main window)*
-
-![Action Editor](docs/images/action-editor.png) *(Insert a screenshot of the action editor)*
 
 ## 🔧 Installation
 
@@ -31,7 +28,7 @@ Knaeckebot is a powerful desktop automation tool developed with .NET 8 and WPF. 
 
 ### Installation via Release Files
 
-1. Download the latest version from the [Releases page](https://github.com/yourusername/knaeckebot/releases)
+1. Download the latest version from the [Releases page](https://github.com/Pinkognito/knaeckebot/releases)
 2. Extract the ZIP file to a folder of your choice
 3. Start the application via `Knaeckebot.exe`
 
@@ -39,7 +36,7 @@ Knaeckebot is a powerful desktop automation tool developed with .NET 8 and WPF. 
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/knaeckebot.git
+   git clone https://github.com/Pinkognito/knaeckebot.git
    ```
 2. Open the solution in Visual Studio
 3. Build the solution (Ctrl+Shift+B)
