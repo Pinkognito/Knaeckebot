@@ -1,0 +1,82 @@
+<Window x:Class="Knaeckebot.MainWindow"
+        xmlns:input="clr-namespace:System.Windows.Input;assembly=PresentationCore"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Knaeckebot"
+        xmlns:models="clr-namespace:Knaeckebot.Models"
+        xmlns:viewmodels="clr-namespace:Knaeckebot.ViewModels"
+        xmlns:converters="clr-namespace:Knaeckebot.Converters"
+        xmlns:controls="clr-namespace:Knaeckebot.Controls"
+        mc:Ignorable="d"
+        Title="Knaeckebot Pro" Height="850" Width="1400" 
+        MinWidth="1100" MinHeight="750"
+        WindowStartupLocation="CenterScreen">
+    <!-- Shortcuts für Abspielen und Abbrechen -->
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding PlaySequenceCommand}" />
+        <KeyBinding Key="F6" Command="{Binding StopPlayingCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding StopPlayingCommand}" />
+
+        <!-- Angepasste Tastenkombination für Aktionen kopieren und für Sequenzen duplizieren -->
+        <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyOrDuplicateCommand}" />
+
+        <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding PasteActionsCommand}" />
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <!-- Styles für konsistentes Aussehen -->
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="HeaderTextStyle">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="5,5,5,2"/>
+        </Style>
+
+        <!-- Key-Konverter für KeyboardAction-Bindungen -->
+        <converters:KeyToKeyItemConverter x:Key="KeyToKeyItemConverter"/>
+        <converters:KeyArrayToStringConverter x:Key="KeyArrayToStringConverter"/>
+    </Window.Resources>
+
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
+
+    <DockPanel>
+        <!-- Hauptmenü aus dem UserControl -->
+        <controls:MainMenuControl DockPanel.Dock="Top"/>
+
+        <!-- Statusleiste aus dem UserControl -->
+        <controls:StatusBarControl DockPanel.Dock="Bottom"/>
+
+        <!-- Hauptbereich -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" MinWidth="180"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2*" MinWidth="450"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2*" MinWidth="350"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Linke Seitenleiste - Sequenz-Bibliothek -->
+            <controls:SequenceLibraryControl Grid.Column="0"/>
+
+            <!-- Splitter zwischen Sequenz-Liste und Editor -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <!-- Mittlerer Bereich - Sequenz-Editor mit verbesserter Anordnung -->
+            <controls:SequenceEditorControl Grid.Column="2"/>
+
+            <!-- Splitter zwischen Editor und Detailansicht -->
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            <!-- Rechte Seitenleiste - Aktionsdetails -->
+            <controls:ActionDetailsControl Grid.Column="4"/>
+        </Grid>
+    </DockPanel>
+</Window>

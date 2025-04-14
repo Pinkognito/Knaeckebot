@@ -1,0 +1,77 @@
+<Application x:Class="Knaeckebot.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Knaeckebot"
+             xmlns:models="clr-namespace:Knaeckebot.Models"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:input="clr-namespace:System.Windows.Input;assembly=WindowsBase"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <converters:BoolToRecordingStateConverter x:Key="BoolToRecordingStateConverter"/>
+        <converters:ActionToDetailConverter x:Key="ActionToDetailConverter"/>
+        <converters:ActionToTypeConverter x:Key="ActionToTypeConverter"/>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <converters:KeyboardActionTypeToVisibilityConverter x:Key="KeyboardActionTypeToVisibilityConverter"/>
+        <converters:BrowserActionTypeToVisibilityConverter x:Key="BrowserActionTypeToVisibilityConverter"/>
+        <converters:ObjectToTypeVisibilityConverter x:Key="ObjectToTypeVisibilityConverter"/>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter"/>
+
+        <ObjectDataProvider x:Key="MouseActionTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:MouseActionType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="KeyboardActionTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:KeyboardActionType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="VariableTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:VariableType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="VariableActionTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:VariableActionType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="BrowserActionTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:BrowserActionType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="KeyValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="input:Key"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="ConditionSourceTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:ConditionSourceType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="ComparisonOperatorValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:ComparisonOperator"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="KeyValuesSorted" MethodName="GetSortedKeyValues" ObjectType="{x:Type local:KeyHelper}"/>
+
+        <Style x:Key="ListViewItemContainerStyle" TargetType="ListViewItem">
+        </Style>
+    </Application.Resources>
+</Application>

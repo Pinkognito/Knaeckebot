@@ -1,0 +1,79 @@
+<UserControl x:Class="Knaeckebot.Controls.SequenceVariablesControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="800">
+    <Expander Header="Sequence Variables" 
+              IsExpanded="True" 
+              Margin="5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Toolbar for variables -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5,0,5">
+                <Button Content="Add Variable" Command="{Binding AddVariableCommand}"/>
+                <Button Content="Delete Variable" Command="{Binding DeleteVariableCommand}" 
+                        IsEnabled="{Binding IsVariableSelected}"/>
+            </StackPanel>
+
+            <!-- Variable list -->
+            <ListView Grid.Row="1" 
+                      ItemsSource="{Binding SelectedSequence.Variables}" 
+                      SelectedItem="{Binding SelectedVariable}"
+                      Height="100" BorderThickness="1" Margin="0,0,0,5">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Name" Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="110"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Type" Width="80">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox SelectedItem="{Binding Type}" 
+                                              ItemsSource="{Binding Source={StaticResource VariableTypeValues}}"
+                                              Width="70"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Text Value" Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding TextValue, UpdateSourceTrigger=PropertyChanged}" 
+                                             Width="110"
+                                             Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Number Value" Width="80">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding NumberValue, UpdateSourceTrigger=PropertyChanged}" 
+                                             Width="70"
+                                             Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Number}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Description" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+    </Expander>
+</UserControl>

@@ -1,0 +1,55 @@
+<UserControl x:Class="Knaeckebot.Controls.SequenceLibraryControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="250">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Sequence Library" 
+                   FontWeight="Bold" Margin="5"/>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="5">
+            <Button Command="{Binding NewSequenceCommand}" ToolTip="New Sequence" Content="New" Width="50" Margin="0,0,3,0"/>
+            <Button Command="{Binding DeleteSequenceCommand}" ToolTip="Delete Sequence (Del)" Content="Delete" Width="60"
+                    IsEnabled="{Binding AreSequencesSelected}" Margin="0,0,3,0"/>
+            <Button Command="{Binding DuplicateSequenceCommand}" ToolTip="Duplicate Sequence (Ctrl+C)" Content="Duplicate" Width="70"
+                    IsEnabled="{Binding AreSequencesSelected}"/>
+        </StackPanel>
+
+        <ListView ItemsSource="{Binding Sequences}" 
+                  SelectedItem="{Binding SelectedSequence}"
+                  SelectionMode="Extended"
+                  Name="SequencesListView"
+                  BorderThickness="0" Margin="5,0"
+                  KeyDown="SequencesListView_KeyDown">
+            <ListView.Resources>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <EventSetter Event="Selected" Handler="SequenceListViewItem_Selected"/>
+                    <EventSetter Event="Unselected" Handler="SequenceListViewItem_Unselected"/>
+                </Style>
+            </ListView.Resources>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="3">
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock>
+                                <Run Text="Actions:"/>
+                                <Run Text="{Binding Actions.Count, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Margin="10,0,0,0">
+                                <Run Text="Variables:"/>
+                                <Run Text="{Binding Variables.Count, Mode=OneWay}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </DockPanel>
+</UserControl>
