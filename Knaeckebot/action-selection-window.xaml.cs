@@ -24,7 +24,8 @@ namespace Knaeckebot
             JsonAction,
             ClipboardAction,
             VariableAction,
-            LoopAction // New action type for loops
+            LoopAction,
+            IfAction // New action type for if condition
         }
 
         /// <summary>
@@ -54,7 +55,8 @@ namespace Knaeckebot
                 4 => ActionType.JsonAction,
                 5 => ActionType.ClipboardAction,
                 6 => ActionType.VariableAction,
-                7 => ActionType.LoopAction, // New case for loop action
+                7 => ActionType.LoopAction,
+                8 => ActionType.IfAction, // New case for if action
                 _ => ActionType.VariableAction // Default to Variable action
             };
 

@@ -961,6 +961,11 @@ namespace Knaeckebot.ViewModels
         /// </summary>
         public ICommand AddLoopActionCommand { get; private set; }
 
+        /// <summary>
+        /// Command to add a if action
+        /// </summary>
+        public ICommand AddIfActionCommand { get; private set; }
+
         #endregion
     }
 }

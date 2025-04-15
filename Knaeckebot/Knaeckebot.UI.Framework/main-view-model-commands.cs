@@ -6,6 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
+using Application = System.Windows.Application;
+using ListView = System.Windows.Controls.ListView;
 
 namespace Knaeckebot.ViewModels
 {
@@ -56,6 +59,8 @@ namespace Knaeckebot.ViewModels
             AddVariableActionCommand = new RelayCommand(() => AddSpecificAction(new VariableAction { Name = "New Variable Action" }),
                 () => IsSequenceSelected);
             AddLoopActionCommand = new RelayCommand(() => AddSpecificAction(new LoopAction { Name = "New Loop Action" }),
+                () => IsSequenceSelected);
+            AddIfActionCommand = new RelayCommand(() => AddSpecificAction(new IfAction { Name = "New If Action" }),
                 () => IsSequenceSelected);
         }
 
@@ -651,6 +656,15 @@ namespace Knaeckebot.ViewModels
                         AddSpecificAction(loopAction);
                         break;
 
+                    case ActionSelectionWindow.ActionType.IfAction:
+                        // Add new if action
+                        var ifAction = new IfAction
+                        {
+                            Name = "New If Action"
+                        };
+                        AddSpecificAction(ifAction);
+                        break;
+
                     default:
                         // Default to a Variable action
                         AddSpecificAction(new VariableAction
@@ -787,6 +801,68 @@ namespace Knaeckebot.ViewModels
                 return; // Important: Exit method here
             }
 
+            // Check if an if action is selected
+            if (SelectedAction is IfAction ifAction)
+            {
+                // Determine if the THEN or ELSE branch is active in the UI
+                bool useElseBranch = false;
+                var targetCollection = ifAction.ThenActions;
+                string branchName = "THEN";
+
+                // Find active ListViews in the UI to determine which branch is active
+                try
+                {
+                    var mainWindow = Application.Current.MainWindow;
+                    if (mainWindow != null)
+                    {
+                        // Try to find the ElseActionsListView
+                        var elseListView = FindActiveListView(mainWindow, "ElseActionsListView");
+                        if (elseListView != null && elseListView.IsKeyboardFocusWithin)
+                        {
+                            useElseBranch = true;
+                            LogManager.Log("ELSE branch ListView has focus", LogLevel.Debug);
+                        }
+                        else
+                        {
+                            LogManager.Log("ELSE branch ListView not found or doesn't have focus", LogLevel.Debug);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogManager.Log($"Error determining active branch: {ex.Message}", LogLevel.Error);
+                }
+
+                // If ELSE branch should be used and is enabled
+                if (useElseBranch && ifAction.UseElseBranch)
+                {
+                    targetCollection = ifAction.ElseActions;
+                    branchName = "ELSE";
+                    LogManager.Log("Using ELSE branch for paste operation", LogLevel.Debug);
+                }
+                else
+                {
+                    LogManager.Log("Using THEN branch for paste operation", LogLevel.Debug);
+                }
+
+                // Insert actions into the appropriate branch
+                foreach (var action in _copiedActions)
+                {
+                    // Create a new copy for the branch
+                    var actionCopy = action.Clone();
+                    targetCollection.Add(actionCopy);
+                }
+
+                StatusMessage = _copiedActions.Count == 1
+                    ? $"Action inserted into {branchName} branch"
+                    : $"{_copiedActions.Count} actions inserted into {branchName} branch";
+
+                LogManager.Log(_copiedActions.Count == 1
+                    ? $"Action '{_copiedActions[0].Name}' inserted into {branchName} branch"
+                    : $"{_copiedActions.Count} actions inserted into {branchName} branch");
+
+                return; // Important: Exit method here
+            }
 
             // Determine position for insertion
             int insertPosition = SelectedAction != null
@@ -829,6 +905,32 @@ namespace Knaeckebot.ViewModels
             LogManager.Log(_copiedActions.Count == 1
                 ? $"Action '{_copiedActions[0].Name}' pasted"
                 : $"{_copiedActions.Count} actions pasted");
+        }
+
+        /// <summary>
+        /// Finds a ListView in the control tree by name that has focus
+        /// </summary>
+        private ListView FindActiveListView(DependencyObject parent, string name)
+        {
+            // Check if this is the ListView we're looking for
+            if (parent is ListView listView && listView.Name == name)
+            {
+                return listView;
+            }
+
+            // Recursively search for the ListView in children
+            int childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                var result = FindActiveListView(child, name);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

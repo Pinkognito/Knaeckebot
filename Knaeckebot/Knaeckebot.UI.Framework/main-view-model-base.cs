@@ -40,6 +40,8 @@ namespace Knaeckebot.ViewModels
 
         // Clipboard for copied actions
         private List<ActionBase> _copiedActions = new List<ActionBase>();
+        public List<ActionBase> CopiedActions => _copiedActions;
+
 
         // Dictionary to track Key values for each action by its ID
         private Dictionary<Guid, Key[]?> _actionKeysTracker = new Dictionary<Guid, Key[]?>();

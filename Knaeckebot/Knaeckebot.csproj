@@ -9,4 +9,12 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="IfActionControl.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="IfActionControl.xaml" />
+  </ItemGroup>
+
 </Project>
