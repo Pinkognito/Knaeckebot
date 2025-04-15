@@ -247,6 +247,8 @@
                                 x:Name="MoveDownButton"/>
                             <Button Content="Delete" Margin="0,0,5,0" Click="DeleteLoopAction_Click"
                                 x:Name="DeleteButton"/>
+                            <Button Content="Copy" Margin="0,0,5,0" Click="CopyLoopAction_Click"
+                                x:Name="CopyButton" ToolTip="Copy selected actions"/>
                             <Button Content="Paste" Margin="0,0,5,0" Click="PasteLoopAction_Click"
                                 x:Name="PasteButton"/>
                         </StackPanel>
@@ -984,43 +986,354 @@
                 <GroupBox Header="Branch Action Details" Margin="0,0,0,5" Padding="5" 
                           x:Name="BranchActionDetailsGroup"
                           Visibility="Collapsed">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                        <StackPanel>
+                            <!-- Common properties for all action types -->
+                            <GroupBox Header="Basic Properties" Margin="0,0,0,5" Padding="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Action Type:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BranchActionType" Text="-" 
-                               Margin="0,0,0,5" VerticalAlignment="Center" FontWeight="Bold"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Action Type:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BranchActionType" Text="-" 
+                                           Margin="0,0,0,5" VerticalAlignment="Center" FontWeight="Bold"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="BranchActionName" Text=""
-                             Margin="0,0,0,5"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="BranchActionName" Text=""
+                                         Margin="0,0,0,5"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" Margin="0,0,5,5" 
-                               VerticalAlignment="Top"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="BranchActionDescription" Text=""
-                             Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Top"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="BranchActionDescription" Text=""
+                                         Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Delay (ms):" Margin="0,0,5,0" 
-                               VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="BranchActionDelay" Text=""
-                             VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Delay (ms):" Margin="0,0,5,0" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="BranchActionDelay" Text=""
+                                         VerticalAlignment="Center"/>
+                                </Grid>
+                            </GroupBox>
 
-                        <Button Grid.Row="4" Grid.Column="1" Content="Apply Changes" 
-                                x:Name="ApplyBranchActionChanges" Click="ApplyBranchActionChanges_Click"
-                                HorizontalAlignment="Right" Margin="0,10,0,0"/>
-                    </Grid>
+                            <!-- MouseAction specific properties -->
+                            <GroupBox Header="Mouse Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="MouseActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+
+                                    <!-- Mouse action types with radio buttons -->
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                                        <RadioButton Content="Left click" Margin="0,0,5,0" x:Name="rbLeftClick" GroupName="MouseActionType" />
+                                        <RadioButton Content="Right click" Margin="5,0,5,0" x:Name="rbRightClick" GroupName="MouseActionType" />
+                                        <RadioButton Content="Middle click" Margin="5,0,5,0" x:Name="rbMiddleClick" GroupName="MouseActionType" />
+                                        <RadioButton Content="Double click" Margin="5,0,5,0" x:Name="rbDoubleClick" GroupName="MouseActionType" />
+                                        <RadioButton Content="Mouse wheel" Margin="5,0,0,0" x:Name="rbMouseWheel" GroupName="MouseActionType" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="X-Position:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                                        <TextBox Width="80" x:Name="MouseActionXPosition"/>
+                                        <Button Content="Current Position" Margin="5,0,0,0" Click="GetCurrentBranchMousePosition_Click" 
+                                            ToolTip="Use current mouse position"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Y-Position:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Width="80" HorizontalAlignment="Left"
+                                         x:Name="MouseActionYPosition"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Wheel delta:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                                        <TextBox Width="80" x:Name="MouseActionWheelDelta"/>
+                                        <TextBlock Text="(Positive = Up, Negative = Down)" Margin="5,0,0,0" 
+                                               VerticalAlignment="Center" FontSize="11" Opacity="0.7"/>
+                                    </StackPanel>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- KeyboardAction specific properties -->
+                            <GroupBox Header="Keyboard Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="KeyboardActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+
+                                    <!-- Keyboard action types with radio buttons -->
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                                        <RadioButton Content="Text" Margin="0,0,5,0" x:Name="rbTypeText" GroupName="KeyboardActionType" Checked="KeyboardActionTypeRadio_Checked" />
+                                        <RadioButton Content="Key" Margin="5,0,5,0" x:Name="rbKeyPress" GroupName="KeyboardActionType" Checked="KeyboardActionTypeRadio_Checked" />
+                                        <RadioButton Content="Combination" Margin="5,0,5,0" x:Name="rbKeyCombination" GroupName="KeyboardActionType" Checked="KeyboardActionTypeRadio_Checked" />
+                                        <RadioButton Content="Hotkey" Margin="5,0,0,0" x:Name="rbHotkey" GroupName="KeyboardActionType" Checked="KeyboardActionTypeRadio_Checked" />
+                                    </StackPanel>
+
+                                    <!-- Text for TypeText -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Text:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="KeyboardTextLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" 
+                                        x:Name="KeyboardActionText" TextWrapping="Wrap" AcceptsReturn="True" Height="60" 
+                                        Visibility="Collapsed"/>
+
+                                    <!-- Key field for KeyPress/Combination/Hotkey -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Key:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="KeyboardKeyLabel" Visibility="Collapsed"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                         x:Name="KeyboardActionKey"
+                                         ItemsSource="{Binding Source={StaticResource KeyValuesSorted}}"
+                                         Visibility="Collapsed" />
+
+                                    <!-- Modifier checkboxes for KeyCombination/Hotkey -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Modifiers:" Margin="0,0,5,5"
+                                          VerticalAlignment="Center" x:Name="KeyboardModifiersLabel" Visibility="Collapsed"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5"
+                                          x:Name="KeyboardModifiersPanel" Visibility="Collapsed">
+                                        <CheckBox Content="Ctrl" Margin="0,0,10,0" x:Name="KeyboardCtrlCheckbox"/>
+                                        <CheckBox Content="Alt" Margin="0,0,10,0" x:Name="KeyboardAltCheckbox"/>
+                                        <CheckBox Content="Shift" Margin="0,0,0,0" x:Name="KeyboardShiftCheckbox"/>
+                                    </StackPanel>
+
+                                    <!-- Delay between chars for TypeText -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Character delay (ms):" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="KeyboardDelayLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="KeyboardActionDelay" 
+                                        Width="80" HorizontalAlignment="Left" Visibility="Collapsed"/>
+
+                                    <!-- Display current keys -->
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Current keys:" Margin="0,5,5,0"
+                                          VerticalAlignment="Top" x:Name="KeyboardCurrentKeysLabel" Visibility="Collapsed"/>
+                                    <Border Grid.Row="4" Grid.Column="1" Margin="0,5,0,0" Padding="5"
+                                          BorderBrush="LightGray" BorderThickness="1" Background="AliceBlue"
+                                          x:Name="KeyboardCurrentKeysPanel" Visibility="Collapsed">
+                                        <TextBlock x:Name="KeyboardCurrentKeys" TextWrapping="Wrap"/>
+                                    </Border>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- WaitAction specific properties -->
+                            <GroupBox Header="Wait Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="WaitActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,0" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" x:Name="WaitActionTime"
+                                         Width="100" HorizontalAlignment="Left"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- VariableAction specific properties -->
+                            <GroupBox Header="Variable Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="VariableActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"
+                                          x:Name="VariableActionTypeCombo"
+                                          ItemsSource="{Binding Source={StaticResource VariableActionTypeValues}}"
+                                          SelectionChanged="VariableActionType_SelectionChanged"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Variable name:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"
+                                          x:Name="VariableActionNameCombo"
+                                          ItemsSource="{Binding VariableNames}"
+                                          IsEditable="True"/>
+
+                                    <!-- Value field (for SetValue and AppendText) -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Value:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="VariableValueLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+                                        x:Name="VariableActionValue" Visibility="Collapsed"/>
+
+                                    <!-- Increment/Decrement value -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Change amount:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="VariableIncrementLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"
+                                        x:Name="VariableActionIncrement" Visibility="Collapsed"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- ClipboardAction specific properties -->
+                            <GroupBox Header="Clipboard Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="ClipboardActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                                        <RadioButton Content="Direct text" GroupName="ClipboardSource" Margin="0,0,10,0" x:Name="ClipboardTextRadioButton" Checked="ClipboardSourceRadio_Checked"/>
+                                        <RadioButton Content="Use variable" GroupName="ClipboardSource" x:Name="ClipboardVarRadioButton" Checked="ClipboardSourceRadio_Checked"/>
+                                    </StackPanel>
+
+                                    <!-- Text input -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Text:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Top" x:Name="ClipboardTextLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" 
+                                        x:Name="ClipboardText" 
+                                        Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="80" 
+                                        Visibility="Collapsed"/>
+
+                                    <!-- Variable selection -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Variable:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center" x:Name="ClipboardVariableLabel" Visibility="Collapsed"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1" 
+                                        x:Name="ClipboardVariableName"
+                                        ItemsSource="{Binding VariableNames}"
+                                        IsEditable="True"
+                                        Margin="0,0,0,5" 
+                                        Visibility="Collapsed"/>
+
+                                    <!-- Append option -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" 
+                                          VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="3" Grid.Column="1" Content="Append to existing text" 
+                                        x:Name="ClipboardAppendCheck"
+                                        Margin="0,0,0,5"/>
+
+                                    <!-- Retry settings -->
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="ClipboardRetryCount" 
+                                        Width="80" HorizontalAlignment="Left"
+                                        Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
+                                          VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="ClipboardRetryWaitTime" 
+                                        Width="80" HorizontalAlignment="Left"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- JsonAction specific properties -->
+                            <GroupBox Header="JSON Action Properties" Margin="0,0,0,5" Padding="5" 
+                                  x:Name="JsonActionPropertiesGroup" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" Margin="0,0,5,5" 
+                                         VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Read from clipboard" 
+                                         x:Name="JsonCheckClipboard"
+                                         Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="JSON Template:" Margin="0,0,5,5" 
+                                         VerticalAlignment="Top"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="JsonTemplate"
+                                         Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="100"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="X-Offset:" Margin="0,0,5,5" 
+                                         VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="JsonOffsetX"
+                                         Width="80" HorizontalAlignment="Left"
+                                         Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Y-Offset:" Margin="0,0,5,5" 
+                                         VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="JsonOffsetY"
+                                         Width="80" HorizontalAlignment="Left"
+                                         Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
+                                         VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="JsonRetryCount"
+                                         Width="80" HorizontalAlignment="Left"
+                                         Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
+                                         VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="JsonRetryWaitTime"
+                                         Width="80" HorizontalAlignment="Left"
+                                         Margin="0,0,0,5"/>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" 
+                                         VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="6" Grid.Column="1" Content="Continue on errors" 
+                                         x:Name="JsonContinueOnError"
+                                         Margin="0,0,0,5"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <Button Content="Apply Changes" 
+                                    x:Name="ApplyBranchActionChanges" Click="ApplyBranchActionChanges_Click"
+                                    HorizontalAlignment="Right" Margin="0,10,0,10"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </GroupBox>
             </StackPanel>
         </ScrollViewer>

@@ -13,6 +13,7 @@ using UserControl = System.Windows.Controls.UserControl;
 using ListView = System.Windows.Controls.ListView;
 using CheckBox = System.Windows.Controls.CheckBox;
 using MouseAction = Knaeckebot.Models.MouseAction;
+using ComboBox = System.Windows.Controls.ComboBox;
 
 namespace Knaeckebot.Controls
 {
@@ -120,15 +121,232 @@ namespace Knaeckebot.Controls
 
             _selectedBranchAction = action;
 
-            // Update UI elements
+            // Update common UI elements
             BranchActionType.Text = action.GetType().Name;
             BranchActionName.Text = action.Name;
             BranchActionDescription.Text = action.Description;
             BranchActionDelay.Text = action.DelayBefore.ToString();
 
+            // Hide all type-specific property groups first
+            MouseActionPropertiesGroup.Visibility = Visibility.Collapsed;
+            KeyboardActionPropertiesGroup.Visibility = Visibility.Collapsed;
+            WaitActionPropertiesGroup.Visibility = Visibility.Collapsed;
+            VariableActionPropertiesGroup.Visibility = Visibility.Collapsed;
+            ClipboardActionPropertiesGroup.Visibility = Visibility.Collapsed;
+            JsonActionPropertiesGroup.Visibility = Visibility.Collapsed;
+
+            // Populate type-specific properties based on action type
+            if (action is MouseAction mouseAction)
+            {
+                LogManager.Log($"Populating MouseAction properties", LogLevel.Debug);
+                MouseActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set X, Y positions
+                MouseActionXPosition.Text = mouseAction.X.ToString();
+                MouseActionYPosition.Text = mouseAction.Y.ToString();
+                MouseActionWheelDelta.Text = mouseAction.WheelDelta.ToString();
+
+                // Set action type radio button
+                switch (mouseAction.ActionType)
+                {
+                    case MouseActionType.LeftClick:
+                        rbLeftClick.IsChecked = true;
+                        break;
+                    case MouseActionType.RightClick:
+                        rbRightClick.IsChecked = true;
+                        break;
+                    case MouseActionType.MiddleClick:
+                        rbMiddleClick.IsChecked = true;
+                        break;
+                    case MouseActionType.DoubleClick:
+                        rbDoubleClick.IsChecked = true;
+                        break;
+                    case MouseActionType.MouseWheel:
+                        rbMouseWheel.IsChecked = true;
+                        break;
+                }
+            }
+            else if (action is KeyboardAction keyboardAction)
+            {
+                LogManager.Log($"Populating KeyboardAction properties", LogLevel.Debug);
+                KeyboardActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set keyboard action type radio button
+                switch (keyboardAction.ActionType)
+                {
+                    case KeyboardActionType.TypeText:
+                        rbTypeText.IsChecked = true;
+
+                        // Show text input fields
+                        KeyboardTextLabel.Visibility = Visibility.Visible;
+                        KeyboardActionText.Visibility = Visibility.Visible;
+                        KeyboardDelayLabel.Visibility = Visibility.Visible;
+                        KeyboardActionDelay.Visibility = Visibility.Visible;
+
+                        // Set values
+                        KeyboardActionText.Text = keyboardAction.Text ?? string.Empty;
+                        KeyboardActionDelay.Text = keyboardAction.DelayBetweenChars.ToString();
+                        break;
+
+                    case KeyboardActionType.KeyPress:
+                        rbKeyPress.IsChecked = true;
+
+                        // Show key input field
+                        KeyboardKeyLabel.Visibility = Visibility.Visible;
+                        KeyboardActionKey.Visibility = Visibility.Visible;
+
+                        // Set the key if available
+                        if (keyboardAction.Keys != null && keyboardAction.Keys.Length > 0)
+                        {
+                            var key = keyboardAction.Keys[keyboardAction.Keys.Length - 1];
+                            KeyboardActionKey.SelectedItem = new KeyItem(key);
+                        }
+                        break;
+
+                    case KeyboardActionType.KeyCombination:
+                    case KeyboardActionType.Hotkey:
+                        if (keyboardAction.ActionType == KeyboardActionType.KeyCombination)
+                            rbKeyCombination.IsChecked = true;
+                        else
+                            rbHotkey.IsChecked = true;
+
+                        // Show key and modifier input fields
+                        KeyboardKeyLabel.Visibility = Visibility.Visible;
+                        KeyboardActionKey.Visibility = Visibility.Visible;
+                        KeyboardModifiersLabel.Visibility = Visibility.Visible;
+                        KeyboardModifiersPanel.Visibility = Visibility.Visible;
+
+                        // Set the key if available
+                        if (keyboardAction.Keys != null && keyboardAction.Keys.Length > 0)
+                        {
+                            // Find modifiers in the keys
+                            bool hasCtrl = keyboardAction.Keys.Any(k => k == Key.LeftCtrl || k == Key.RightCtrl);
+                            bool hasAlt = keyboardAction.Keys.Any(k => k == Key.LeftAlt || k == Key.RightAlt);
+                            bool hasShift = keyboardAction.Keys.Any(k => k == Key.LeftShift || k == Key.RightShift);
+
+                            // Set modifier checkboxes
+                            KeyboardCtrlCheckbox.IsChecked = hasCtrl;
+                            KeyboardAltCheckbox.IsChecked = hasAlt;
+                            KeyboardShiftCheckbox.IsChecked = hasShift;
+
+                            // Find the main key (the non-modifier key)
+                            var mainKey = keyboardAction.Keys.LastOrDefault(k =>
+                                k != Key.LeftCtrl && k != Key.RightCtrl &&
+                                k != Key.LeftAlt && k != Key.RightAlt &&
+                                k != Key.LeftShift && k != Key.RightShift);
+
+                            if (mainKey != Key.None)
+                            {
+                                KeyboardActionKey.SelectedItem = new KeyItem(mainKey);
+                            }
+                        }
+                        break;
+                }
+
+                // Show current keys
+                UpdateKeyboardCurrentKeys(keyboardAction);
+            }
+            else if (action is WaitAction waitAction)
+            {
+                LogManager.Log($"Populating WaitAction properties", LogLevel.Debug);
+                WaitActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set wait time
+                WaitActionTime.Text = waitAction.WaitTime.ToString();
+            }
+            else if (action is VariableAction variableAction)
+            {
+                LogManager.Log($"Populating VariableAction properties", LogLevel.Debug);
+                VariableActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set variable action type
+                VariableActionTypeCombo.SelectedItem = variableAction.ActionType;
+
+                // Set variable name
+                VariableActionNameCombo.Text = variableAction.VariableName;
+
+                // Update UI based on action type
+                UpdateVariableActionUI(variableAction.ActionType);
+
+                // Set values based on action type
+                if (variableAction.ActionType == VariableActionType.SetValue ||
+                    variableAction.ActionType == VariableActionType.AppendText)
+                {
+                    VariableActionValue.Text = variableAction.Value;
+                }
+                else if (variableAction.ActionType == VariableActionType.Increment ||
+                        variableAction.ActionType == VariableActionType.Decrement)
+                {
+                    VariableActionIncrement.Text = variableAction.IncrementValue.ToString();
+                }
+            }
+            else if (action is ClipboardAction clipboardAction)
+            {
+                LogManager.Log($"Populating ClipboardAction properties", LogLevel.Debug);
+                ClipboardActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set the source radio button
+                if (clipboardAction.UseVariable)
+                {
+                    ClipboardVarRadioButton.IsChecked = true;
+                    ClipboardVariableLabel.Visibility = Visibility.Visible;
+                    ClipboardVariableName.Visibility = Visibility.Visible;
+                    ClipboardVariableName.Text = clipboardAction.VariableName;
+                }
+                else
+                {
+                    ClipboardTextRadioButton.IsChecked = true;
+                    ClipboardTextLabel.Visibility = Visibility.Visible;
+                    ClipboardText.Visibility = Visibility.Visible;
+                    ClipboardText.Text = clipboardAction.Text;
+                }
+
+                // Set additional properties
+                ClipboardAppendCheck.IsChecked = clipboardAction.AppendToClipboard;
+                ClipboardRetryCount.Text = clipboardAction.RetryCount.ToString();
+                ClipboardRetryWaitTime.Text = clipboardAction.RetryWaitTime.ToString();
+            }
+            else if (action is JsonAction jsonAction)
+            {
+                LogManager.Log($"Populating JsonAction properties", LogLevel.Debug);
+                JsonActionPropertiesGroup.Visibility = Visibility.Visible;
+
+                // Set properties
+                JsonCheckClipboard.IsChecked = jsonAction.CheckClipboard;
+                JsonTemplate.Text = jsonAction.JsonTemplate;
+                JsonOffsetX.Text = jsonAction.OffsetX.ToString();
+                JsonOffsetY.Text = jsonAction.OffsetY.ToString();
+                JsonRetryCount.Text = jsonAction.RetryCount.ToString();
+                JsonRetryWaitTime.Text = jsonAction.RetryWaitTime.ToString();
+                JsonContinueOnError.IsChecked = jsonAction.ContinueOnError;
+            }
+
             // Show the branch action details group
             BranchActionDetailsGroup.Visibility = Visibility.Visible;
             BranchActionDetailsGroup.Header = $"{_branchContext} Branch Action Details";
+        }
+
+        /// <summary>
+        /// Updates display of current keys for keyboard action
+        /// </summary>
+        private void UpdateKeyboardCurrentKeys(KeyboardAction keyboardAction)
+        {
+            // Show current keys panel
+            KeyboardCurrentKeysLabel.Visibility = Visibility.Visible;
+            KeyboardCurrentKeysPanel.Visibility = Visibility.Visible;
+
+            // Build string representation of keys
+            string keyString = "";
+            if (keyboardAction.Keys != null && keyboardAction.Keys.Length > 0)
+            {
+                keyString = string.Join(" + ", keyboardAction.Keys.Select(k => new KeyItem(k).DisplayValue));
+            }
+            else
+            {
+                keyString = "(No keys assigned)";
+            }
+
+            KeyboardCurrentKeys.Text = keyString;
         }
 
         /// <summary>
@@ -143,6 +361,117 @@ namespace Knaeckebot.Controls
         }
 
         /// <summary>
+        /// Event handler for KeyboardAction type radio buttons
+        /// </summary>
+        private void KeyboardActionTypeRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            // First hide all elements
+            KeyboardTextLabel.Visibility = Visibility.Collapsed;
+            KeyboardActionText.Visibility = Visibility.Collapsed;
+            KeyboardKeyLabel.Visibility = Visibility.Collapsed;
+            KeyboardActionKey.Visibility = Visibility.Collapsed;
+            KeyboardModifiersLabel.Visibility = Visibility.Collapsed;
+            KeyboardModifiersPanel.Visibility = Visibility.Collapsed;
+            KeyboardDelayLabel.Visibility = Visibility.Collapsed;
+            KeyboardActionDelay.Visibility = Visibility.Collapsed;
+
+            // Show relevant elements based on the selected radio button
+            if (sender == rbTypeText)
+            {
+                KeyboardTextLabel.Visibility = Visibility.Visible;
+                KeyboardActionText.Visibility = Visibility.Visible;
+                KeyboardDelayLabel.Visibility = Visibility.Visible;
+                KeyboardActionDelay.Visibility = Visibility.Visible;
+            }
+            else if (sender == rbKeyPress)
+            {
+                KeyboardKeyLabel.Visibility = Visibility.Visible;
+                KeyboardActionKey.Visibility = Visibility.Visible;
+            }
+            else if (sender == rbKeyCombination || sender == rbHotkey)
+            {
+                KeyboardKeyLabel.Visibility = Visibility.Visible;
+                KeyboardActionKey.Visibility = Visibility.Visible;
+                KeyboardModifiersLabel.Visibility = Visibility.Visible;
+                KeyboardModifiersPanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Event handler for clipboard source radio buttons
+        /// </summary>
+        private void ClipboardSourceRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            // Hide all source-specific items first
+            ClipboardTextLabel.Visibility = Visibility.Collapsed;
+            ClipboardText.Visibility = Visibility.Collapsed;
+            ClipboardVariableLabel.Visibility = Visibility.Collapsed;
+            ClipboardVariableName.Visibility = Visibility.Collapsed;
+
+            // Show the relevant items based on selection
+            if (sender == ClipboardTextRadioButton)
+            {
+                ClipboardTextLabel.Visibility = Visibility.Visible;
+                ClipboardText.Visibility = Visibility.Visible;
+            }
+            else if (sender == ClipboardVarRadioButton)
+            {
+                ClipboardVariableLabel.Visibility = Visibility.Visible;
+                ClipboardVariableName.Visibility = Visibility.Visible;
+            }
+        }
+
+        /// <summary>
+        /// Updates the UI for VariableAction based on action type
+        /// </summary>
+        private void UpdateVariableActionUI(VariableActionType actionType)
+        {
+            // First hide all specific elements
+            VariableValueLabel.Visibility = Visibility.Collapsed;
+            VariableActionValue.Visibility = Visibility.Collapsed;
+            VariableIncrementLabel.Visibility = Visibility.Collapsed;
+            VariableActionIncrement.Visibility = Visibility.Collapsed;
+
+            // Show relevant elements based on action type
+            switch (actionType)
+            {
+                case VariableActionType.SetValue:
+                case VariableActionType.AppendText:
+                    VariableValueLabel.Visibility = Visibility.Visible;
+                    VariableActionValue.Visibility = Visibility.Visible;
+                    break;
+
+                case VariableActionType.Increment:
+                case VariableActionType.Decrement:
+                    VariableIncrementLabel.Visibility = Visibility.Visible;
+                    VariableActionIncrement.Visibility = Visibility.Visible;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Event handler for VariableAction type selection
+        /// </summary>
+        private void VariableActionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is VariableActionType selectedType)
+            {
+                UpdateVariableActionUI(selectedType);
+            }
+        }
+
+        /// <summary>
+        /// Gets the current mouse position for a branch action
+        /// </summary>
+        private void GetCurrentBranchMousePosition_Click(object sender, RoutedEventArgs e)
+        {
+            // Get current mouse position
+            var position = System.Windows.Forms.Cursor.Position;
+            MouseActionXPosition.Text = position.X.ToString();
+            MouseActionYPosition.Text = position.Y.ToString();
+        }
+
+        /// <summary>
         /// Event handler for the Apply Changes button in branch action details
         /// </summary>
         private void ApplyBranchActionChanges_Click(object sender, RoutedEventArgs e)
@@ -152,7 +481,7 @@ namespace Knaeckebot.Controls
 
             LogManager.Log($"Applying changes to branch action: {_selectedBranchAction.Name}", LogLevel.Debug);
 
-            // Update action properties
+            // Update common action properties
             _selectedBranchAction.Name = BranchActionName.Text;
             _selectedBranchAction.Description = BranchActionDescription.Text;
 
@@ -160,6 +489,200 @@ namespace Knaeckebot.Controls
             if (int.TryParse(BranchActionDelay.Text, out int delay))
             {
                 _selectedBranchAction.DelayBefore = delay;
+            }
+
+            // Update type-specific properties
+            if (_selectedBranchAction is MouseAction mouseAction)
+            {
+                LogManager.Log("Updating MouseAction properties", LogLevel.Debug);
+
+                // Parse X, Y positions
+                if (int.TryParse(MouseActionXPosition.Text, out int x))
+                {
+                    mouseAction.X = x;
+                }
+
+                if (int.TryParse(MouseActionYPosition.Text, out int y))
+                {
+                    mouseAction.Y = y;
+                }
+
+                // Parse wheel delta
+                if (int.TryParse(MouseActionWheelDelta.Text, out int wheelDelta))
+                {
+                    mouseAction.WheelDelta = wheelDelta;
+                }
+
+                // Set action type based on selected radio button
+                if (rbLeftClick.IsChecked == true)
+                    mouseAction.ActionType = MouseActionType.LeftClick;
+                else if (rbRightClick.IsChecked == true)
+                    mouseAction.ActionType = MouseActionType.RightClick;
+                else if (rbMiddleClick.IsChecked == true)
+                    mouseAction.ActionType = MouseActionType.MiddleClick;
+                else if (rbDoubleClick.IsChecked == true)
+                    mouseAction.ActionType = MouseActionType.DoubleClick;
+                else if (rbMouseWheel.IsChecked == true)
+                    mouseAction.ActionType = MouseActionType.MouseWheel;
+            }
+            else if (_selectedBranchAction is KeyboardAction keyboardAction)
+            {
+                LogManager.Log("Updating KeyboardAction properties", LogLevel.Debug);
+
+                // Set action type based on selected radio button
+                if (rbTypeText.IsChecked == true)
+                {
+                    keyboardAction.ActionType = KeyboardActionType.TypeText;
+                    keyboardAction.Text = KeyboardActionText.Text;
+
+                    // Parse delay between chars
+                    if (int.TryParse(KeyboardActionDelay.Text, out int charDelay))
+                    {
+                        keyboardAction.DelayBetweenChars = charDelay;
+                    }
+                }
+                else if (rbKeyPress.IsChecked == true)
+                {
+                    keyboardAction.ActionType = KeyboardActionType.KeyPress;
+
+                    // Set key if one is selected
+                    if (KeyboardActionKey.SelectedItem is KeyItem keyItem)
+                    {
+                        keyboardAction.Keys = new Key[] { keyItem.KeyValue };
+                    }
+                }
+                else if (rbKeyCombination.IsChecked == true || rbHotkey.IsChecked == true)
+                {
+                    keyboardAction.ActionType = rbKeyCombination.IsChecked == true
+                        ? KeyboardActionType.KeyCombination
+                        : KeyboardActionType.Hotkey;
+
+                    // Build key combination with modifiers and main key
+                    List<Key> keys = new List<Key>();
+
+                    // Add modifiers in a specific order: Ctrl, Alt, Shift
+                    if (KeyboardCtrlCheckbox.IsChecked == true)
+                        keys.Add(Key.LeftCtrl);
+                    if (KeyboardAltCheckbox.IsChecked == true)
+                        keys.Add(Key.LeftAlt);
+                    if (KeyboardShiftCheckbox.IsChecked == true)
+                        keys.Add(Key.LeftShift);
+
+                    // Add main key if one is selected
+                    if (KeyboardActionKey.SelectedItem is KeyItem keyItem && keyItem.KeyValue != Key.None)
+                    {
+                        keys.Add(keyItem.KeyValue);
+                    }
+
+                    // Set keys if any are defined
+                    if (keys.Count > 0)
+                    {
+                        keyboardAction.Keys = keys.ToArray();
+                    }
+                }
+
+                // After updating, refresh the current keys display
+                UpdateKeyboardCurrentKeys(keyboardAction);
+            }
+            else if (_selectedBranchAction is WaitAction waitAction)
+            {
+                LogManager.Log("Updating WaitAction properties", LogLevel.Debug);
+
+                // Parse wait time
+                if (int.TryParse(WaitActionTime.Text, out int waitTime))
+                {
+                    waitAction.WaitTime = waitTime;
+                }
+            }
+            else if (_selectedBranchAction is VariableAction variableAction)
+            {
+                LogManager.Log("Updating VariableAction properties", LogLevel.Debug);
+
+                // Set variable name
+                variableAction.VariableName = VariableActionNameCombo.Text;
+
+                // Set action type if one is selected
+                if (VariableActionTypeCombo.SelectedItem is VariableActionType selectedType)
+                {
+                    variableAction.ActionType = selectedType;
+                }
+
+                // Set properties based on action type
+                if (variableAction.ActionType == VariableActionType.SetValue ||
+                    variableAction.ActionType == VariableActionType.AppendText)
+                {
+                    variableAction.Value = VariableActionValue.Text;
+                }
+                else if (variableAction.ActionType == VariableActionType.Increment ||
+                         variableAction.ActionType == VariableActionType.Decrement)
+                {
+                    if (int.TryParse(VariableActionIncrement.Text, out int incrementValue))
+                    {
+                        variableAction.IncrementValue = incrementValue;
+                    }
+                }
+            }
+            else if (_selectedBranchAction is ClipboardAction clipboardAction)
+            {
+                LogManager.Log("Updating ClipboardAction properties", LogLevel.Debug);
+
+                // Set source based on radio button
+                clipboardAction.UseVariable = ClipboardVarRadioButton.IsChecked == true;
+
+                // Set text or variable name based on source
+                if (clipboardAction.UseVariable)
+                {
+                    clipboardAction.VariableName = ClipboardVariableName.Text;
+                }
+                else
+                {
+                    clipboardAction.Text = ClipboardText.Text;
+                }
+
+                // Set other properties
+                clipboardAction.AppendToClipboard = ClipboardAppendCheck.IsChecked == true;
+
+                // Parse retry settings
+                if (int.TryParse(ClipboardRetryCount.Text, out int retryCount))
+                {
+                    clipboardAction.RetryCount = retryCount;
+                }
+
+                if (int.TryParse(ClipboardRetryWaitTime.Text, out int retryWait))
+                {
+                    clipboardAction.RetryWaitTime = retryWait;
+                }
+            }
+            else if (_selectedBranchAction is JsonAction jsonAction)
+            {
+                LogManager.Log("Updating JsonAction properties", LogLevel.Debug);
+
+                // Set properties
+                jsonAction.CheckClipboard = JsonCheckClipboard.IsChecked == true;
+                jsonAction.JsonTemplate = JsonTemplate.Text;
+
+                // Parse numeric values
+                if (int.TryParse(JsonOffsetX.Text, out int offsetX))
+                {
+                    jsonAction.OffsetX = offsetX;
+                }
+
+                if (int.TryParse(JsonOffsetY.Text, out int offsetY))
+                {
+                    jsonAction.OffsetY = offsetY;
+                }
+
+                if (int.TryParse(JsonRetryCount.Text, out int retryCount))
+                {
+                    jsonAction.RetryCount = retryCount;
+                }
+
+                if (int.TryParse(JsonRetryWaitTime.Text, out int retryWait))
+                {
+                    jsonAction.RetryWaitTime = retryWait;
+                }
+
+                jsonAction.ContinueOnError = JsonContinueOnError.IsChecked == true;
             }
 
             // Display confirmation
@@ -242,6 +765,9 @@ namespace Knaeckebot.Controls
 
                 if (this.FindName("DeleteButton") is Button deleteButton)
                     deleteButton.IsEnabled = hasSelection;
+
+                if (this.FindName("CopyButton") is Button copyButton)
+                    copyButton.IsEnabled = hasSelection;
             }
         }
 
@@ -353,6 +879,37 @@ namespace Knaeckebot.Controls
                 var position = System.Windows.Forms.Cursor.Position;
                 mouseAction.X = position.X;
                 mouseAction.Y = position.Y;
+            }
+        }
+
+        /// <summary>
+        /// Event handler for copying actions from the loop
+        /// </summary>
+        private void CopyLoopAction_Click(object sender, RoutedEventArgs e)
+        {
+            LogManager.Log("CopyLoopAction_Click called", LogLevel.Debug);
+
+            var vm = DataContext as MainViewModel;
+            if (vm?.SelectedAction is LoopAction loopAction &&
+                FindName("LoopActionsListView") is ListView listView)
+            {
+                // Get all selected items
+                var selectedItems = listView.SelectedItems.Cast<ActionBase>().ToList();
+
+                if (selectedItems.Count > 0)
+                {
+                    // Clear the copied actions and add the selected ones
+                    vm.CopiedActions.Clear();
+                    foreach (var action in selectedItems)
+                    {
+                        vm.CopiedActions.Add(action);
+                        LogManager.Log($"Loop action '{action.Name}' added to copy buffer", LogLevel.Debug);
+                    }
+
+                    vm.StatusMessage = selectedItems.Count == 1
+                        ? "Action copied from loop"
+                        : $"{selectedItems.Count} actions copied from loop";
+                }
             }
         }
 
