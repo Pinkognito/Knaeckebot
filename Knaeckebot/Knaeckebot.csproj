@@ -10,11 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ActionDetailsControl.xaml.cs" />
     <Compile Remove="IfActionControl.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <Page Remove="ActionDetailsControl.xaml" />
     <Page Remove="IfActionControl.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controls\Interfaces\" />
   </ItemGroup>
 
 </Project>

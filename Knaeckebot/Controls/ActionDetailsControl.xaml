@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="Knaeckebot.Controls.ActionDetailsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="350">
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+    </UserControl.Resources>
+    <DockPanel>
+        <TextBlock Text="Action Details" FontWeight="Bold" Margin="5" DockPanel.Dock="Top"/>
+        <TextBlock Text="No action selected" Margin="5" 
+                   Visibility="{Binding IsActionSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                   DockPanel.Dock="Top"/>
+        <!-- Scrollable area for action details -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                     Visibility="{Binding IsActionSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Margin="5">
+                <!-- General properties -->
+                <GroupBox Header="General" Margin="0,0,0,5" Padding="5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Type:" Margin="0,0,5,5" 
+                               VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedAction}" 
+                               Margin="0,0,0,5" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" Margin="0,0,5,5" 
+                               VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAction.Name, UpdateSourceTrigger=PropertyChanged}" 
+                             Margin="0,0,0,5"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" Margin="0,0,5,5" 
+                               VerticalAlignment="Top"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAction.Description, UpdateSourceTrigger=PropertyChanged}" 
+                             Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Delay (ms):" Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAction.DelayBefore, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+                <!-- Content placeholder for the specific action type control -->
+                <ContentControl x:Name="ActionTypeContent" />
+                <!-- Branch Action Details Area managed separately -->
+                <GroupBox Header="Branch Action Details" Margin="0,0,0,5" Padding="5" 
+                          x:Name="BranchActionDetailsGroup"
+                          Visibility="Collapsed">
+                    <TextBlock x:Name="BranchActionPlaceholder" Text="Branch action editing is now handled by specialized controls." />
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

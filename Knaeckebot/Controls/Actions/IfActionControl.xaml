@@ -1,0 +1,206 @@
+﻿<UserControl x:Class="Knaeckebot.Controls.Actions.IfActionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls.Actions"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="300">
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+        <!-- Style for compact branch action items -->
+        <Style x:Key="CompactBranchActionStyle" TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="#E0E0E0" />
+        </Style>
+    </UserControl.Resources>
+    <GroupBox Header="If Action Details" Margin="0,0,0,5" Padding="5">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <!-- Condition area -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Left side:" Margin="0,0,5,5" 
+                       VerticalAlignment="Center"/>
+            <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" Width="110" Margin="0,0,5,0" Name="cmbLeftSourceType"
+                          SelectionChanged="CmbSourceType_SelectionChanged"/>
+                <!-- Variable -->
+                <ComboBox Grid.Column="1" Name="cmbLeftVariableName"
+                          IsEditable="True"
+                          Visibility="Collapsed"/>
+                <!-- Text -->
+                <TextBox Grid.Column="1" Name="txtLeftCustomText"
+                         Visibility="Collapsed"/>
+                <!-- Clipboard (no input field needed) -->
+                <TextBlock Grid.Column="1" Text="Current clipboard content" Name="lblLeftClipboard"
+                           Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+            </Grid>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Comparison type:" Margin="0,0,5,5" 
+                       VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" Name="cmbOperator"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Right side:" Margin="0,0,5,5" 
+                       VerticalAlignment="Center"/>
+            <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" Width="110" Margin="0,0,5,0" Name="cmbRightSourceType"
+                          SelectionChanged="CmbSourceType_SelectionChanged"/>
+                <!-- Variable -->
+                <ComboBox Grid.Column="1" Name="cmbRightVariableName"
+                          IsEditable="True"
+                          Visibility="Collapsed"/>
+                <!-- Text -->
+                <TextBox Grid.Column="1" Name="txtRightCustomText"
+                         Visibility="Collapsed"/>
+                <!-- Clipboard (no input field needed) -->
+                <TextBlock Grid.Column="1" Text="Current clipboard content" Name="lblRightClipboard"
+                           Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+            </Grid>
+            <!-- THEN actions - Header with control options -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Text="THEN actions:" 
+                       Margin="0,10,0,5" FontWeight="Bold"/>
+            <!-- Control elements for then actions -->
+            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Name="txtThenActionCount" Text="Number of actions: 0"
+                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Button Content="Move â†‘" Margin="0,0,5,0" Name="btnMoveThenUp" Click="BtnMoveThenUp_Click"
+                        ToolTip="Move selected actions up"/>
+                <Button Content="Move â†“" Margin="0,0,5,0" Name="btnMoveThenDown" Click="BtnMoveThenDown_Click"
+                        ToolTip="Move selected actions down"/>
+                <Button Content="Delete" Margin="0,0,5,0" Name="btnDeleteThen" Click="BtnDeleteThen_Click"
+                        ToolTip="Delete selected actions"/>
+                <Button Content="Paste" Margin="0,0,5,0" Name="btnPasteThen" Click="BtnPasteThen_Click"
+                        ToolTip="Paste copied actions"/>
+                <Button Content="Copy" Margin="0,0,5,0" Name="btnCopyThen" Click="BtnCopyThen_Click"
+                        ToolTip="Copy selected actions"/>
+            </StackPanel>
+            <!-- ListView for then actions with more compact display -->
+            <ListView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                      Name="lvThenActions"
+                      SelectionMode="Extended"
+                      Height="100" 
+                      Margin="0,5,0,10"
+                      BorderThickness="1"
+                      SelectionChanged="LvThenActions_SelectionChanged"
+                      MouseDoubleClick="LvActions_DoubleClick">
+                <ListView.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource CompactBranchActionStyle}" TargetType="ListViewItem"/>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
+                                     VerticalAlignment="Center" Margin="0,0,3,0"/>
+                            <TextBlock Grid.Column="1" FontWeight="SemiBold">
+                                <Run Text="{Binding Name}"/>
+                                <Run Text=" - " Foreground="#777777"/>
+                                <Run Text="{Binding DelayBefore}" Foreground="#777777"/>
+                                <Run Text="ms" Foreground="#777777"/>
+                            </TextBlock>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <!-- ELSE branch configuration -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Use ELSE branch:" Margin="0,0,5,0" 
+                       VerticalAlignment="Center"/>
+            <CheckBox Grid.Row="6" Grid.Column="1" Name="chkUseElseBranch" 
+                      Margin="0,5,0,5" Checked="ChkUseElseBranch_CheckedChanged" Unchecked="ChkUseElseBranch_CheckedChanged" />
+            <!-- Note about shortcuts -->
+            <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" 
+                       Text="Note: Double-click on any action in the branches to show its details."
+                       TextWrapping="Wrap" Margin="0,5,0,5" FontStyle="Italic"/>
+            <!-- ELSE actions section -->
+            <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
+                   BorderBrush="DarkGray" BorderThickness="1" Margin="0,5,0,0" Padding="5"
+                   Visibility="{Binding ElementName=chkUseElseBranch, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Panel.ZIndex="100" Name="borderElseBranch">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- ELSE actions - Header with control options -->
+                    <TextBlock Grid.Row="0" Text="ELSE actions:" 
+                               Margin="0,0,0,5" FontWeight="Bold"/>
+                    <!-- Control elements for else actions -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Name="txtElseActionCount" Text="Number of actions: 0"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Button Content="Move â†‘" Margin="0,0,5,0" Name="btnMoveElseUp" Click="BtnMoveElseUp_Click"
+                                ToolTip="Move selected actions up"/>
+                        <Button Content="Move â†“" Margin="0,0,5,0" Name="btnMoveElseDown" Click="BtnMoveElseDown_Click"
+                                ToolTip="Move selected actions down"/>
+                        <Button Content="Delete" Margin="0,0,5,0" Name="btnDeleteElse" Click="BtnDeleteElse_Click"
+                                ToolTip="Delete selected actions"/>
+                        <Button Content="Paste" Margin="0,0,5,0" Name="btnPasteElse" Click="BtnPasteElse_Click"
+                                ToolTip="Paste copied actions"/>
+                        <Button Content="Copy" Margin="0,0,5,0" Name="btnCopyElse" Click="BtnCopyElse_Click"
+                                ToolTip="Copy selected actions"/>
+                    </StackPanel>
+                    <!-- ListView for else actions with more compact display -->
+                    <ListView Grid.Row="2"
+                              Name="lvElseActions"
+                              SelectionMode="Extended"
+                              Height="100" 
+                              Margin="0,5,0,0"
+                              BorderThickness="1"
+                              SelectionChanged="LvElseActions_SelectionChanged"
+                              MouseDoubleClick="LvActions_DoubleClick">
+                        <ListView.ItemContainerStyle>
+                            <Style BasedOn="{StaticResource CompactBranchActionStyle}" TargetType="ListViewItem"/>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
+                                             VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Grid.Column="1" FontWeight="SemiBold">
+                                        <Run Text="{Binding Name}"/>
+                                        <Run Text=" - " Foreground="#777777"/>
+                                        <Run Text="{Binding DelayBefore}" Foreground="#777777"/>
+                                        <Run Text="ms" Foreground="#777777"/>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+        </Grid>
+    </GroupBox>
+</UserControl>

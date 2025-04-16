@@ -25,6 +25,16 @@ namespace Knaeckebot
         }
 
         /// <summary>
+        /// Returns a list of all available keys for use in dropdown selections
+        /// </summary>
+        public static IEnumerable<KeyItem> GetAllKeys()
+        {
+            // This method returns the same result as GetSortedKeyValues but was added
+            // to accommodate existing code that calls GetAllKeys()
+            return GetSortedKeyValues();
+        }
+
+        /// <summary>
         /// Checks if a key is a modifier key
         /// </summary>
         private static bool IsModifierKey(Key key)

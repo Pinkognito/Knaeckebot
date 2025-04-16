@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="Knaeckebot.Controls.Actions.VariableActionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls.Actions"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="250" d:DesignWidth="300">
+    <UserControl.Resources>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+    </UserControl.Resources>
+    <GroupBox Header="Variable Action Details" Margin="0,0,0,5" Padding="5">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"
+                      Name="cmbActionType"
+                      SelectionChanged="CmbActionType_SelectionChanged"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Variable name:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"
+                      Name="cmbVariableName"
+                      IsEditable="True"/>
+            <!-- Value input field (for SetValue and AppendText) -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Value:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center" Name="lblValue" Visibility="Collapsed"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+                    Name="txtValue" Visibility="Collapsed"/>
+            <!-- Increment/Decrement value -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Change amount:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center" Name="lblIncrement" Visibility="Collapsed"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"
+                    Name="txtIncrement" Visibility="Collapsed"/>
+            <!-- Hint -->
+            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" TextWrapping="Wrap">
+                Variables must be defined in the sequence. They will be created automatically when using a matching name.
+            </TextBlock>
+        </Grid>
+    </GroupBox>
+</UserControl>

@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="Knaeckebot.Controls.Actions.WaitActionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls.Actions"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="300">
+    <GroupBox Header="Wait Details" Margin="0,0,0,5" Padding="5">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,0" 
+                       VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" Name="txtWaitTime"
+                     Width="100" HorizontalAlignment="Left"/>
+        </Grid>
+    </GroupBox>
+</UserControl>

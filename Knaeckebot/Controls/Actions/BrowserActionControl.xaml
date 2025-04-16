@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="Knaeckebot.Controls.Actions.BrowserActionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls.Actions"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+        <converters:BrowserActionTypeToVisibilityConverter x:Key="BrowserActionTypeToVisibilityConverter"/>
+    </UserControl.Resources>
+    <GroupBox Header="Browser Details" Margin="0,0,0,5" Padding="5">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
+                       VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" 
+                      Name="cmbActionType"
+                      SelectionChanged="CmbActionType_SelectionChanged"
+                      Margin="0,0,0,5"/>
+            <!-- Selector (for FindElementAndClick) -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Selector:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center" Name="lblSelector" Visibility="Collapsed"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Name="txtSelector" 
+                    Margin="0,0,0,5" Visibility="Collapsed"/>
+            <!-- JavaScript (for ExecuteJavaScript) -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="JavaScript:" Margin="0,0,5,5" 
+                      VerticalAlignment="Top" Name="lblJavaScript" Visibility="Collapsed"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Name="txtJavaScript" 
+                    Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="100"
+                    Visibility="Collapsed"/>
+            <!-- Coordinates (for GetCoordinates) -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Last coordinates:" Margin="0,0,5,5" 
+                      VerticalAlignment="Center" Name="lblCoordinates" Visibility="Collapsed"/>
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5"
+                       Name="panelCoordinates" Visibility="Collapsed">
+                <TextBlock Text="X:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBox Width="50" Name="txtXResult"/>
+                <TextBlock Text="Y:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <TextBox Width="50" Name="txtYResult"/>
+            </StackPanel>
+            <!-- Option to use last results (for GetCoordinates) -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Name="lblUseLastResults" Visibility="Collapsed"/>
+            <CheckBox Grid.Row="2" Grid.Column="1" Content="Use saved coordinates" 
+                     Name="chkUseLastResults"
+                     Margin="0,0,0,0" Visibility="Collapsed"/>
+        </Grid>
+    </GroupBox>
+</UserControl>
