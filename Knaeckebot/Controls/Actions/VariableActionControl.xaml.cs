@@ -13,7 +13,9 @@ namespace Knaeckebot.Controls.Actions
 public partial class VariableActionControl : UserControl, IActionControl
 {
 private ActionBase _action;
-private VariableAction _variableAction => _action as VariableAction;
+
+        public event EventHandler<BranchActionEventArgs> BranchActionSelected;
+        private VariableAction _variableAction => _action as VariableAction;
 private MainViewModel ViewModel => DataContext as MainViewModel;
     public VariableActionControl()
     {

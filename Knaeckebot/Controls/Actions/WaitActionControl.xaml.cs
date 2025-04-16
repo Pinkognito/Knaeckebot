@@ -12,7 +12,9 @@ namespace Knaeckebot.Controls.Actions
 public partial class WaitActionControl : UserControl, IActionControl
 {
 private ActionBase _action;
-private WaitAction _waitAction => _action as WaitAction;
+
+        public event EventHandler<BranchActionEventArgs> BranchActionSelected;
+        private WaitAction _waitAction => _action as WaitAction;
 private MainViewModel ViewModel => DataContext as MainViewModel;
     public WaitActionControl()
     {

@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controls\Actions\**" />
+    <EmbeddedResource Remove="Controls\Actions\**" />
+    <None Remove="Controls\Actions\**" />
+    <Page Remove="Controls\Actions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="ActionDetailsControl.xaml.cs" />
     <Compile Remove="IfActionControl.xaml.cs" />
   </ItemGroup>
@@ -20,7 +27,31 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Controls\Actions\BrowserActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\ClipboardActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\IfActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\JsonActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\KeyboardActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\LoopActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\MouseActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\VariableActionControl.xaml.cs" />
+    <Compile Include="Controls\Actions\WaitActionControl.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Controls\Interfaces\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Controls\Actions\BrowserActionControl.xaml" />
+    <Page Include="Controls\Actions\ClipboardActionControl.xaml" />
+    <Page Include="Controls\Actions\IfActionControl.xaml" />
+    <Page Include="Controls\Actions\JsonActionControl.xaml" />
+    <Page Include="Controls\Actions\KeyboardActionControl.xaml" />
+    <Page Include="Controls\Actions\LoopActionControl.xaml" />
+    <Page Include="Controls\Actions\MouseActionControl.xaml" />
+    <Page Include="Controls\Actions\VariableActionControl.xaml" />
+    <Page Include="Controls\Actions\WaitActionControl.xaml" />
   </ItemGroup>
 
 </Project>

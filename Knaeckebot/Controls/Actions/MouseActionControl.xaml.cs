@@ -12,7 +12,10 @@ namespace Knaeckebot.Controls.Actions
 public partial class MouseActionControl : UserControl, IActionControl
 {
 private ActionBase _action;
-private MouseAction _mouseAction => _action as MouseAction;
+
+        public event EventHandler<BranchActionEventArgs> BranchActionSelected;
+
+        private MouseAction _mouseAction => _action as MouseAction;
 private MainViewModel ViewModel => DataContext as MainViewModel;
     public MouseActionControl()
     {

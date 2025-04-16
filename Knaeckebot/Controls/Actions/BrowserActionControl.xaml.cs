@@ -13,7 +13,9 @@ namespace Knaeckebot.Controls.Actions
 public partial class BrowserActionControl : UserControl, IActionControl
 {
 private ActionBase _action;
-private BrowserAction _browserAction => _action as BrowserAction;
+
+        public event EventHandler<BranchActionEventArgs> BranchActionSelected;
+        private BrowserAction _browserAction => _action as BrowserAction;
 private MainViewModel ViewModel => DataContext as MainViewModel;
     public BrowserActionControl()
     {
