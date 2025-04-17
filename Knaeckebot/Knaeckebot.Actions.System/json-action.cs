@@ -135,22 +135,37 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
-        /// Executes the JSON actions
+        /// Executes the JSON action with cancellation support
         /// </summary>
-        public override void Execute()
+        public override void Execute(CancellationToken cancellationToken)
         {
             int currentRetry = 0;
             bool success = false;
 
             while (currentRetry <= RetryCount && !success)
             {
+                // Check for cancellation at each retry
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    LogManager.Log("JSON action cancelled by user");
+                    throw new OperationCanceledException();
+                }
+
                 try
                 {
                     if (currentRetry > 0)
                     {
                         LogManager.Log($"JSON action retry attempt {currentRetry}/{RetryCount} after {RetryWaitTime}ms wait time");
-                        // Wait before retry attempt
-                        Thread.Sleep(RetryWaitTime);
+
+                        // Wait before retry with cancellation checks
+                        for (int i = 0; i < RetryWaitTime; i += 100)
+                        {
+                            if (cancellationToken.IsCancellationRequested)
+                                throw new OperationCanceledException();
+
+                            int sleepTime = Math.Min(100, RetryWaitTime - i);
+                            Thread.Sleep(sleepTime);
+                        }
                     }
 
                     LogManager.Log($"Executing JSON action [ID: {Id}, Clipboard: {CheckClipboard}, Template: {(JsonTemplate != null ? "available" : "not available")}, ContinueOnError: {ContinueOnError}, Attempt: {currentRetry + 1}/{RetryCount + 1}]");
@@ -232,7 +247,7 @@ namespace Knaeckebot.Models
                             LogManager.Log($"JSON array contains {jsonDoc.RootElement.GetArrayLength()} elements");
                         }
 
-                        ProcessJsonActions(jsonDoc);
+                        ProcessJsonActions(jsonDoc, cancellationToken);
                         success = true;
                     }
                     catch (JsonException ex)
@@ -250,7 +265,7 @@ namespace Knaeckebot.Models
                                 var jsonDoc = JsonDocument.Parse(jsonText);
                                 LogManager.Log("JSON parsing successful after repair!");
 
-                                ProcessJsonActions(jsonDoc);
+                                ProcessJsonActions(jsonDoc, cancellationToken);
                                 success = true;
                             }
                             catch (Exception repairEx)
@@ -265,8 +280,19 @@ namespace Knaeckebot.Models
                         }
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    LogManager.Log("JSON action cancelled during processing");
+                    throw;
+                }
                 catch (Exception ex)
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        LogManager.Log("JSON action cancelled during error handling");
+                        throw new OperationCanceledException();
+                    }
+
                     LogManager.Log($"Error in JSON action: {ex.Message}");
                     LogManager.Log($"Exception type: {ex.GetType().Name}");
                     LogManager.Log($"Stack trace: {ex.StackTrace}");
@@ -279,6 +305,14 @@ namespace Knaeckebot.Models
             {
                 throw new JsonException("JSON action failed after " + RetryCount + " attempts.");
             }
+        }
+
+        /// <summary>
+        /// Override base method for backward compatibility
+        /// </summary>
+        public override void Execute()
+        {
+            Execute(CancellationToken.None);
         }
 
         /// <summary>
@@ -735,15 +769,23 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
-        /// Processes the actions from the JSON
+        /// Processes the actions from the JSON with cancellation support
         /// </summary>
-        private void ProcessJsonActions(JsonDocument json)
+        private void ProcessJsonActions(JsonDocument json, CancellationToken cancellationToken)
         {
+            // Check cancellation first
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException();
+
             LogManager.Log("Processing JSON actions...");
 
             // Check if a sequence ID is present
             if (json.RootElement.TryGetProperty("sequenceName", out JsonElement sequenceNameElement))
             {
+                // Check cancellation after each significant step
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
+
                 var sequenceName = sequenceNameElement.GetString();
                 if (!string.IsNullOrEmpty(sequenceName))
                 {
@@ -764,6 +806,10 @@ namespace Knaeckebot.Models
                             LogManager.Log($"Variable found: {variableName} = {variableValue}");
                         }
                     }
+
+                    // Check for cancellation before executing the sequence
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException();
 
                     // Execute the sequence with the extracted variables
                     bool success = variables.Count > 0
@@ -786,6 +832,10 @@ namespace Knaeckebot.Models
                 LogManager.Log("JSON doesn't contain a sequence name");
             }
 
+            // Check for cancellation before processing click coordinates
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException();
+
             // Check if click coordinates are present
             if (json.RootElement.TryGetProperty("clickAction", out JsonElement clickActionElement))
             {
@@ -803,11 +853,20 @@ namespace Knaeckebot.Models
 
                         LogManager.Log($"JSON contains click coordinates: ({x}, {y}) with offset ({OffsetX}, {OffsetY})");
 
+                        // Check for cancellation before executing mouse click
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException();
+
                         // Use MouseService to click at the coordinates
                         LogManager.Log($"Performing mouse click at position ({x}, {y})");
                         Services.MouseService.Instance.ClickOnPosition(x, y);
                         LogManager.Log("Mouse click executed");
                         return;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Re-throw cancellation exceptions
+                        throw;
                     }
                     catch (Exception ex)
                     {
@@ -831,6 +890,10 @@ namespace Knaeckebot.Models
                 LogManager.Log("JSON doesn't contain a clickAction");
             }
 
+            // Check for cancellation before processing wait command
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException();
+
             // Check if a wait command is present
             if (json.RootElement.TryGetProperty("waitTime", out JsonElement waitTimeElement))
             {
@@ -838,9 +901,24 @@ namespace Knaeckebot.Models
                 {
                     int waitTime = waitTimeElement.GetInt32();
                     LogManager.Log($"JSON contains wait time: {waitTime} ms");
-                    Thread.Sleep(waitTime);
+
+                    // Implement wait with cancellation support
+                    for (int i = 0; i < waitTime; i += 100)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException();
+
+                        int sleepTime = Math.Min(100, waitTime - i);
+                        Thread.Sleep(sleepTime);
+                    }
+
                     LogManager.Log($"Wait time of {waitTime} ms completed");
                     return;
+                }
+                catch (OperationCanceledException)
+                {
+                    // Re-throw cancellation exceptions
+                    throw;
                 }
                 catch (Exception ex)
                 {

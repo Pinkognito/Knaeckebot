@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 
 namespace Knaeckebot.Models
 {
@@ -242,12 +243,19 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
-        /// Executes the if action
+        /// Executes the if action with cancellation support
         /// </summary>
-        public override void Execute()
+        public override void Execute(CancellationToken cancellationToken)
         {
             try
             {
+                // Check cancellation before starting
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    LogManager.Log("If action cancelled before execution");
+                    throw new OperationCanceledException();
+                }
+
                 LogManager.Log($"Starting if action: {Name}");
 
                 // Evaluate the condition
@@ -257,34 +265,70 @@ namespace Knaeckebot.Models
                 // Execute then or else branch based on the condition
                 if (conditionResult)
                 {
+                    // Check cancellation again
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException();
+
                     LogManager.Log($"Executing THEN branch with {ThenActions.Count} actions");
                     // Execute all actions in the then branch
                     foreach (var action in ThenActions.Where(a => a.IsEnabled))
                     {
-                        // Delay before the action
-                        if (action.DelayBefore > 0)
+                        // Check cancellation before each action
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            System.Threading.Thread.Sleep(action.DelayBefore);
+                            LogManager.Log("If action cancelled during THEN branch");
+                            throw new OperationCanceledException();
                         }
 
-                        // Execute action
-                        action.Execute();
+                        // Delay before the action with cancellation support
+                        if (action.DelayBefore > 0)
+                        {
+                            for (int i = 0; i < action.DelayBefore; i += 100)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                    throw new OperationCanceledException();
+
+                                int sleepTime = Math.Min(100, action.DelayBefore - i);
+                                System.Threading.Thread.Sleep(sleepTime);
+                            }
+                        }
+
+                        // Execute action with cancellation token
+                        action.Execute(cancellationToken);
                     }
                 }
                 else if (UseElseBranch)
                 {
+                    // Check cancellation again
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new OperationCanceledException();
+
                     LogManager.Log($"Executing ELSE branch with {ElseActions.Count} actions");
                     // Execute all actions in the else branch
                     foreach (var action in ElseActions.Where(a => a.IsEnabled))
                     {
-                        // Delay before the action
-                        if (action.DelayBefore > 0)
+                        // Check cancellation before each action
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            System.Threading.Thread.Sleep(action.DelayBefore);
+                            LogManager.Log("If action cancelled during ELSE branch");
+                            throw new OperationCanceledException();
                         }
 
-                        // Execute action
-                        action.Execute();
+                        // Delay before the action with cancellation support
+                        if (action.DelayBefore > 0)
+                        {
+                            for (int i = 0; i < action.DelayBefore; i += 100)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                    throw new OperationCanceledException();
+
+                                int sleepTime = Math.Min(100, action.DelayBefore - i);
+                                System.Threading.Thread.Sleep(sleepTime);
+                            }
+                        }
+
+                        // Execute action with cancellation token
+                        action.Execute(cancellationToken);
                     }
                 }
                 else
@@ -294,11 +338,24 @@ namespace Knaeckebot.Models
 
                 LogManager.Log($"If action completed: {Name}");
             }
+            catch (OperationCanceledException)
+            {
+                LogManager.Log($"If action cancelled: {Name}");
+                throw;
+            }
             catch (Exception ex)
             {
                 LogManager.Log($"Error in if action: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Override base method for backward compatibility
+        /// </summary>
+        public override void Execute()
+        {
+            Execute(CancellationToken.None);
         }
 
         /// <summary>

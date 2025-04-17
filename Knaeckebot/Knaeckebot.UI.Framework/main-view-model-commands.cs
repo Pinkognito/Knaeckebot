@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using Application = System.Windows.Application;
 using ListView = System.Windows.Controls.ListView;
@@ -451,6 +452,9 @@ namespace Knaeckebot.ViewModels
             _cancellationTokenSource = new CancellationTokenSource();
             CancellationToken token = _cancellationTokenSource.Token;
 
+            // Register global shortcut for F6
+            RegisterGlobalF6Shortcut();
+
             // Play sequence in a separate thread (configured as STA)
             _playbackThread = new Thread(() =>
             {
@@ -465,13 +469,8 @@ namespace Knaeckebot.ViewModels
                         return;
                     }
 
-                    // Check all KeyboardActions before execution
-                    foreach (var action in SelectedSequence.Actions.OfType<KeyboardAction>())
-                    {
-                        LogManager.LogKeyboardAction(action, "BEFORE EXECUTION");
-                    }
-
-                    SelectedSequence.Execute();
+                    // Pass token to Sequence.Execute
+                    SelectedSequence.Execute(token);
 
                     // If we get here, execution was not cancelled
                     // Update status via the dispatcher
@@ -480,6 +479,9 @@ namespace Knaeckebot.ViewModels
                         IsPlaying = false;
                         StatusMessage = $"Sequence played: {SelectedSequence.Name}";
                         LogManager.Log($"Playback of sequence {SelectedSequence.Name} completed");
+
+                        // Unregister global shortcut when done
+                        UnregisterGlobalF6Shortcut();
                     });
                 }
                 catch (OperationCanceledException)
@@ -490,6 +492,9 @@ namespace Knaeckebot.ViewModels
                         IsPlaying = false;
                         StatusMessage = $"Playback of sequence {SelectedSequence.Name} cancelled";
                         LogManager.Log($"Playback of sequence {SelectedSequence.Name} cancelled", LogLevel.Info);
+
+                        // Unregister global shortcut when cancelled
+                        UnregisterGlobalF6Shortcut();
                     });
                 }
                 catch (Exception ex)
@@ -505,6 +510,9 @@ namespace Knaeckebot.ViewModels
                             "Error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
+
+                        // Unregister global shortcut when error
+                        UnregisterGlobalF6Shortcut();
                     });
                 }
                 finally
@@ -513,6 +521,12 @@ namespace Knaeckebot.ViewModels
                     _cancellationTokenSource?.Dispose();
                     _cancellationTokenSource = null;
                     _playbackThread = null;
+
+                    // Ensure global shortcut is unregistered
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        UnregisterGlobalF6Shortcut();
+                    });
                 }
             });
 
@@ -548,6 +562,9 @@ namespace Knaeckebot.ViewModels
                 IsPlaying = false;
                 StatusMessage = "Playback cancelled";
                 LogManager.Log("Playback cancelled", LogLevel.Info);
+
+                // Unregister global shortcut
+                UnregisterGlobalF6Shortcut();
             }
             catch (Exception ex)
             {
@@ -556,6 +573,9 @@ namespace Knaeckebot.ViewModels
                 // Ensure status is reset
                 IsPlaying = false;
                 StatusMessage = "Playback cancelled with errors";
+
+                // Unregister global shortcut
+                UnregisterGlobalF6Shortcut();
             }
             finally
             {
@@ -563,6 +583,67 @@ namespace Knaeckebot.ViewModels
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
                 _playbackThread = null;
+            }
+        }
+
+        /// <summary>
+        /// Registers the global F6 shortcut for stopping playback
+        /// </summary>
+        private void RegisterGlobalF6Shortcut()
+        {
+            if (_isStopHookRegistered) return;
+
+            try
+            {
+                _playbackStopHook = new GlobalKeyboardHook();
+                _playbackStopHook.KeyDown += PlaybackStopHook_KeyDown;
+                _isStopHookRegistered = true;
+                LogManager.Log("Global F6 shortcut registered for stopping playback", LogLevel.Debug);
+            }
+            catch (Exception ex)
+            {
+                LogManager.Log($"Failed to register global F6 shortcut: {ex.Message}", LogLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the global F6 shortcut
+        /// </summary>
+        private void UnregisterGlobalF6Shortcut()
+        {
+            if (!_isStopHookRegistered || _playbackStopHook == null) return;
+
+            try
+            {
+                _playbackStopHook.KeyDown -= PlaybackStopHook_KeyDown;
+                _playbackStopHook.Dispose();
+                _playbackStopHook = null;
+                _isStopHookRegistered = false;
+                LogManager.Log("Global F6 shortcut unregistered", LogLevel.Debug);
+            }
+            catch (Exception ex)
+            {
+                LogManager.Log($"Error unregistering global F6 shortcut: {ex.Message}", LogLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// Event handler for the global keyboard hook
+        /// </summary>
+        private void PlaybackStopHook_KeyDown(object? sender, KeyboardHookEventArgs e)
+        {
+            if (e.Key == Key.F6 || e.Key == Key.Escape)
+            {
+                LogManager.Log($"Global shortcut detected: {e.Key}, stopping playback", LogLevel.Debug);
+
+                // Execute on UI thread
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (IsPlaying)
+                    {
+                        StopPlaying();
+                    }
+                });
             }
         }
 

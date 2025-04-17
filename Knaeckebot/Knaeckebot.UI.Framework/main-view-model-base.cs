@@ -54,6 +54,10 @@ namespace Knaeckebot.ViewModels
         // New command for copy or duplicate with Ctrl+C
         private ICommand? _copyOrDuplicateCommand;
 
+        // Global hotkey for stopping playback
+        private GlobalKeyboardHook? _playbackStopHook;
+        private bool _isStopHookRegistered = false;
+
         #endregion
 
         /// <summary>

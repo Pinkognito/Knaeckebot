@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Knaeckebot.Models
 {
@@ -87,6 +88,18 @@ namespace Knaeckebot.Models
         /// Executes the action
         /// </summary>
         public abstract void Execute();
+
+        /// <summary>
+        /// Executes the action with cancellation support
+        /// </summary>
+        public virtual void Execute(CancellationToken cancellationToken)
+        {
+            // Check cancellation before executing
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException();
+
+            Execute();
+        }
 
         /// <summary>
         /// Creates a copy of this action

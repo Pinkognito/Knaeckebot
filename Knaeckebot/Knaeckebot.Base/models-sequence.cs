@@ -190,7 +190,7 @@ namespace Knaeckebot.Models
         /// <summary>
         /// Executes the entire sequence
         /// </summary>
-        public void Execute()
+        public void Execute(CancellationToken cancellationToken = default)
         {
             IsRunning = true;
             LogManager.Log($"Starting sequence: {Name}");
@@ -212,16 +212,21 @@ namespace Knaeckebot.Models
                     // Execute actions via the UI thread, which is already configured as STA
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ExecuteActionsInSequence();
+                        ExecuteActionsInSequence(cancellationToken);
                     });
                 }
                 else
                 {
                     // Thread is already STA, execute directly
-                    ExecuteActionsInSequence();
+                    ExecuteActionsInSequence(cancellationToken);
                 }
 
                 LogManager.Log($"Sequence successfully completed: {Name}");
+            }
+            catch (OperationCanceledException)
+            {
+                LogManager.Log($"Sequence execution cancelled: {Name}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -240,21 +245,44 @@ namespace Knaeckebot.Models
         /// <summary>
         /// Executes all actions in the sequence
         /// </summary>
-        private void ExecuteActionsInSequence()
+        private void ExecuteActionsInSequence(CancellationToken cancellationToken = default)
         {
             foreach (var action in Actions.Where(a => a.IsEnabled))
             {
+                // Check for cancellation before each action
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    LogManager.Log("Execution cancelled before action: " + action.Name);
+                    throw new OperationCanceledException();
+                }
+
                 LogManager.Log($"Executing action: {action.Name} ({action.GetType().Name})");
 
                 // Execute the delay before the action - consider the full delay time
                 if (action.DelayBefore > 0)
                 {
-                    System.Threading.Thread.Sleep(action.DelayBefore);
+                    // Check cancellation during delay instead of sleeping the full time at once
+                    for (int i = 0; i < action.DelayBefore; i += 100)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException();
+
+                        int sleepTime = Math.Min(100, action.DelayBefore - i);
+                        System.Threading.Thread.Sleep(sleepTime);
+                    }
                 }
 
-                // Execute the action
-                action.Execute();
+                // Execute the action with cancellation token
+                action.Execute(cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// For backwards compatibility
+        /// </summary>
+        public void Execute()
+        {
+            Execute(CancellationToken.None);
         }
 
         /// <summary>

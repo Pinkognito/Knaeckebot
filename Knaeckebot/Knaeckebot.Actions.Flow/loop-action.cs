@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace Knaeckebot.Models
 {
@@ -222,9 +223,9 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
-        /// Executes the loop action
+        /// Executes the loop action with cancellation support
         /// </summary>
-        public override void Execute()
+        public override void Execute(CancellationToken cancellationToken)
         {
             try
             {
@@ -236,6 +237,13 @@ namespace Knaeckebot.Models
                 // Execute loop
                 while (CurrentIteration < MaxIterations)
                 {
+                    // Check cancellation at each iteration
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        LogManager.Log("Loop action cancelled by user");
+                        throw new OperationCanceledException();
+                    }
+
                     CurrentIteration++;
                     LogManager.Log($"Loop iteration {CurrentIteration}/{MaxIterations}");
 
@@ -249,24 +257,51 @@ namespace Knaeckebot.Models
                     // Execute all actions in the loop
                     foreach (var action in LoopActions.Where(a => a.IsEnabled))
                     {
+                        // Check cancellation before each action in the loop
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            LogManager.Log("Loop action cancelled by user during action execution");
+                            throw new OperationCanceledException();
+                        }
+
                         // Delay before the action
                         if (action.DelayBefore > 0)
                         {
-                            System.Threading.Thread.Sleep(action.DelayBefore);
+                            for (int i = 0; i < action.DelayBefore; i += 100)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                    throw new OperationCanceledException();
+
+                                int sleepTime = Math.Min(100, action.DelayBefore - i);
+                                System.Threading.Thread.Sleep(sleepTime);
+                            }
                         }
 
-                        // Execute action
-                        action.Execute();
+                        // Execute action with cancellation token
+                        action.Execute(cancellationToken);
                     }
                 }
 
                 LogManager.Log($"Loop action completed after {CurrentIteration} iterations");
+            }
+            catch (OperationCanceledException)
+            {
+                LogManager.Log($"Loop action cancelled: {Name}");
+                throw;
             }
             catch (Exception ex)
             {
                 LogManager.Log($"Error in loop action: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Override base method for backward compatibility
+        /// </summary>
+        public override void Execute()
+        {
+            Execute(CancellationToken.None);
         }
 
         /// <summary>
