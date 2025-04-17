@@ -239,10 +239,10 @@ namespace Knaeckebot.Models
                     CurrentIteration++;
                     LogManager.Log($"Loop iteration {CurrentIteration}/{MaxIterations}");
 
-                    // Check if condition for termination is met
-                    if (UseCondition && EvaluateCondition())
+                    // Check if condition for continuation is NOT met (inverted logic)
+                    if (UseCondition && !EvaluateCondition())
                     {
-                        LogManager.Log("Condition for loop termination met, ending loop");
+                        LogManager.Log("Condition for loop continuation no longer met, ending loop");
                         break;
                     }
 
