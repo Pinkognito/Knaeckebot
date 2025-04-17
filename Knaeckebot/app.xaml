@@ -69,6 +69,9 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
+
+
+
         <ObjectDataProvider x:Key="KeyValuesSorted" MethodName="GetSortedKeyValues" ObjectType="{x:Type local:KeyHelper}"/>
 
         <Style x:Key="ListViewItemContainerStyle" TargetType="ListViewItem">

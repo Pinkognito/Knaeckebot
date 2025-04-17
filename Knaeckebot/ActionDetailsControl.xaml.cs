@@ -431,11 +431,19 @@ namespace Knaeckebot.Controls
             VariableActionValue.Visibility = Visibility.Collapsed;
             VariableIncrementLabel.Visibility = Visibility.Collapsed;
             VariableActionIncrement.Visibility = Visibility.Collapsed;
+            VariableListIndexLabel.Visibility = Visibility.Collapsed;
+            VariableListIndex.Visibility = Visibility.Collapsed;
+            VariableItemLabel.Visibility = Visibility.Collapsed;
+            VariableItemValue.Visibility = Visibility.Collapsed;
 
             // Show relevant elements based on action type
             switch (actionType)
             {
                 case VariableActionType.SetValue:
+                    VariableValueLabel.Visibility = Visibility.Visible;
+                    VariableActionValue.Visibility = Visibility.Visible;
+                    break;
+
                 case VariableActionType.AppendText:
                     VariableValueLabel.Visibility = Visibility.Visible;
                     VariableActionValue.Visibility = Visibility.Visible;
@@ -445,6 +453,21 @@ namespace Knaeckebot.Controls
                 case VariableActionType.Decrement:
                     VariableIncrementLabel.Visibility = Visibility.Visible;
                     VariableActionIncrement.Visibility = Visibility.Visible;
+                    break;
+
+                case VariableActionType.RemoveListItem:
+                    VariableListIndexLabel.Visibility = Visibility.Visible;
+                    VariableListIndex.Visibility = Visibility.Visible;
+                    break;
+
+                case VariableActionType.AddListItem:
+                case VariableActionType.AddTableRow:
+                    VariableItemLabel.Visibility = Visibility.Visible;
+                    VariableItemValue.Visibility = Visibility.Visible;
+                    if (actionType == VariableActionType.AddTableRow)
+                        VariableItemLabel.Text = "Row:";
+                    else
+                        VariableItemLabel.Text = "Item:";
                     break;
             }
         }
@@ -608,18 +631,32 @@ namespace Knaeckebot.Controls
                 }
 
                 // Set properties based on action type
-                if (variableAction.ActionType == VariableActionType.SetValue ||
-                    variableAction.ActionType == VariableActionType.AppendText)
+                switch (variableAction.ActionType)
                 {
-                    variableAction.Value = VariableActionValue.Text;
-                }
-                else if (variableAction.ActionType == VariableActionType.Increment ||
-                         variableAction.ActionType == VariableActionType.Decrement)
-                {
-                    if (int.TryParse(VariableActionIncrement.Text, out int incrementValue))
-                    {
-                        variableAction.IncrementValue = incrementValue;
-                    }
+                    case VariableActionType.SetValue:
+                    case VariableActionType.AppendText:
+                        variableAction.Value = VariableActionValue.Text;
+                        break;
+
+                    case VariableActionType.Increment:
+                    case VariableActionType.Decrement:
+                        if (int.TryParse(VariableActionIncrement.Text, out int incrementValue))
+                        {
+                            variableAction.IncrementValue = incrementValue;
+                        }
+                        break;
+
+                    case VariableActionType.AddListItem:
+                    case VariableActionType.AddTableRow:
+                        variableAction.Value = VariableItemValue.Text;
+                        break;
+
+                    case VariableActionType.RemoveListItem:
+                        if (int.TryParse(VariableListIndex.Text, out int listIndex))
+                        {
+                            variableAction.ListIndex = listIndex;
+                        }
+                        break;
                 }
             }
             else if (_selectedBranchAction is ClipboardAction clipboardAction)

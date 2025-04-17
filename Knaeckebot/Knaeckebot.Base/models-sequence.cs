@@ -166,8 +166,93 @@ namespace Knaeckebot.Models
                 variable = new SequenceVariable { Name = name, Type = type };
                 Variables.Add(variable);
             }
+            else if (variable.Type != type)
+            {
+                // Update the type if it's different
+                variable.Type = type;
+            }
 
             variable.SetValueFromString(value);
+            return variable;
+        }
+
+        /// <summary>
+        /// Sets a boolean variable directly
+        /// </summary>
+        public SequenceVariable SetBoolVariable(string name, bool value)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+            {
+                variable = new SequenceVariable { Name = name, Type = VariableType.Boolean };
+                Variables.Add(variable);
+            }
+            else if (variable.Type != VariableType.Boolean)
+            {
+                // Convert to boolean if it's not already
+                variable.Type = VariableType.Boolean;
+            }
+
+            variable.BoolValue = value;
+            return variable;
+        }
+
+        /// <summary>
+        /// Adds an item to a list variable
+        /// </summary>
+        public SequenceVariable AddToList(string name, string item)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+            {
+                variable = new SequenceVariable { Name = name, Type = VariableType.List };
+                Variables.Add(variable);
+            }
+            else if (variable.Type != VariableType.List)
+            {
+                // Convert to list if it's not already
+                string oldValue = variable.GetValueAsString();
+                variable.Type = VariableType.List;
+
+                // If it had a previous value, use it as the first item
+                if (!string.IsNullOrEmpty(oldValue))
+                {
+                    variable.ListValue = oldValue;
+                }
+            }
+
+            variable.AddListItem(item);
+            return variable;
+        }
+
+        /// <summary>
+        /// Adds a row to a table variable
+        /// </summary>
+        public SequenceVariable AddTableRow(string name, string row)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+            {
+                variable = new SequenceVariable { Name = name, Type = VariableType.List };
+                Variables.Add(variable);
+            }
+            else if (variable.Type != VariableType.List)
+            {
+                // Convert to list if it's not already
+                string oldValue = variable.GetValueAsString();
+                variable.Type = VariableType.List;
+
+                // If it had a previous value, use it as the first row
+                if (!string.IsNullOrEmpty(oldValue))
+                {
+                    variable.ListValue = oldValue;
+                }
+            }
+
+            variable.AddTableRow(row);
             return variable;
         }
 
@@ -185,6 +270,119 @@ namespace Knaeckebot.Models
 
             variable.NumberValue += increment;
             return true;
+        }
+
+        /// <summary>
+        /// Toggles a boolean variable
+        /// </summary>
+        public bool ToggleBoolVariable(string name)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+            {
+                // Create a new boolean variable defaulting to true (toggled from the implicit false)
+                var newVar = new SequenceVariable
+                {
+                    Name = name,
+                    Type = VariableType.Boolean,
+                    BoolValue = true
+                };
+                Variables.Add(newVar);
+                return true;
+            }
+            else if (variable.Type != VariableType.Boolean)
+            {
+                // Convert to boolean
+                variable.Type = VariableType.Boolean;
+                variable.BoolValue = true; // Default to true when toggling a non-boolean
+                return true;
+            }
+            else
+            {
+                // Toggle the existing boolean
+                variable.BoolValue = !variable.BoolValue;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Gets a variable as a boolean value
+        /// </summary>
+        public bool GetBooleanValue(string name, bool defaultValue = false)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+                return defaultValue;
+
+            if (variable.Type == VariableType.Boolean)
+                return variable.BoolValue;
+
+            // Try to convert other types to boolean
+            string valueStr = variable.GetValueAsString();
+            if (bool.TryParse(valueStr, out bool result))
+                return result;
+
+            // Special case conversions
+            if (valueStr == "1" || valueStr.ToLower() == "yes" || valueStr.ToLower() == "y" || valueStr.ToLower() == "on")
+                return true;
+
+            if (valueStr == "0" || valueStr.ToLower() == "no" || valueStr.ToLower() == "n" || valueStr.ToLower() == "off")
+                return false;
+
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Gets a variable as a numeric value
+        /// </summary>
+        public int GetNumericValue(string name, int defaultValue = 0)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null)
+                return defaultValue;
+
+            if (variable.Type == VariableType.Number)
+                return variable.NumberValue;
+
+            // Try to convert other types to number
+            string valueStr = variable.GetValueAsString();
+            if (int.TryParse(valueStr, out int result))
+                return result;
+
+            // Special case for boolean
+            if (variable.Type == VariableType.Boolean)
+                return variable.BoolValue ? 1 : 0;
+
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Gets the items in a list variable
+        /// </summary>
+        public string[] GetListItems(string name)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null || variable.Type != VariableType.List)
+                return Array.Empty<string>();
+
+            return variable.GetListItems();
+        }
+
+        /// <summary>
+        /// Gets a table from a list variable
+        /// </summary>
+        public string[][] GetTableData(string name)
+        {
+            var variable = FindVariableByName(name);
+
+            if (variable == null || variable.Type != VariableType.List)
+                return Array.Empty<string[]>();
+
+            return variable.GetTableData();
         }
 
         /// <summary>
@@ -294,7 +492,10 @@ namespace Knaeckebot.Models
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,
-                Converters = { new ActionBaseJsonConverter() }
+                Converters = {
+                    new ActionBaseJsonConverter(),
+                    new SequenceVariableJsonConverter()
+                }
             };
 
             string json = JsonSerializer.Serialize(this, options);
@@ -312,7 +513,10 @@ namespace Knaeckebot.Models
         {
             var options = new JsonSerializerOptions
             {
-                Converters = { new ActionBaseJsonConverter() }
+                Converters = {
+                    new ActionBaseJsonConverter(),
+                    new SequenceVariableJsonConverter()
+                }
             };
 
             LogManager.Log($"Loading sequence from: {filePath}");
@@ -326,7 +530,7 @@ namespace Knaeckebot.Models
                     throw new InvalidOperationException("The sequence could not be loaded.");
                 }
                 sequence.FilePath = filePath;
-                LogManager.Log($"Sequence loaded: {sequence.Name} with {sequence.Actions.Count} actions");
+                LogManager.Log($"Sequence loaded: {sequence.Name} with {sequence.Actions.Count} actions and {sequence.Variables.Count} variables");
                 return sequence;
             }
             catch (Exception ex)
@@ -370,6 +574,8 @@ namespace Knaeckebot.Models
                     Type = variable.Type,
                     TextValue = variable.TextValue,
                     NumberValue = variable.NumberValue,
+                    BoolValue = variable.BoolValue,
+                    ListValue = variable.ListValue,
                     Description = variable.Description
                 };
                 clone.Variables.Add(clonedVar);

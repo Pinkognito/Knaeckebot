@@ -13,7 +13,12 @@ namespace Knaeckebot.Models
         Increment,
         Decrement,
         AppendText,
-        ClearValue
+        ClearValue,
+        ToggleBoolean,
+        AddListItem,
+        RemoveListItem,
+        ClearList,
+        AddTableRow
     }
 
     /// <summary>
@@ -25,6 +30,7 @@ namespace Knaeckebot.Models
         private string _value = string.Empty;
         private int _incrementValue = 1;
         private VariableActionType _actionType = VariableActionType.SetValue;
+        private int _listIndex = 0;
 
         /// <summary>
         /// Name of the variable to edit
@@ -43,7 +49,7 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
-        /// Value for the operation (with SetValue, AppendText)
+        /// Value for the operation (with SetValue, AppendText, AddListItem, etc.)
         /// </summary>
         public string Value
         {
@@ -91,6 +97,22 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
+        /// Index for list operations
+        /// </summary>
+        public int ListIndex
+        {
+            get => _listIndex;
+            set
+            {
+                if (_listIndex != value)
+                {
+                    _listIndex = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// Executes the variable action
         /// </summary>
         public override void Execute()
@@ -132,12 +154,26 @@ namespace Knaeckebot.Models
 
                 LogManager.Log($"Executing variable action: {ActionType} for variable {VariableName}");
 
+                // Get or create the variable
+                var variable = currentSequence.FindVariableByName(VariableName);
+
                 switch (ActionType)
                 {
                     case VariableActionType.SetValue:
-                        // Simply and directly set the variable value (worked originally)
-                        currentSequence.SetVariable(VariableName, Value ?? string.Empty);
-                        LogManager.Log($"Variable {VariableName} set to value '{Value}'");
+                        // Set the variable value based on the current type
+                        if (variable == null)
+                        {
+                            // Create a new variable with the appropriate type based on the value
+                            VariableType typeToCreate = DetermineVariableType(Value);
+                            currentSequence.SetVariable(VariableName, Value ?? string.Empty, typeToCreate);
+                            LogManager.Log($"New variable {VariableName} created as {typeToCreate} with value '{Value}'");
+                        }
+                        else
+                        {
+                            // Set value for existing variable
+                            variable.SetValueFromString(Value ?? string.Empty);
+                            LogManager.Log($"Variable {VariableName} set to value '{Value}'");
+                        }
                         break;
 
                     case VariableActionType.Increment:
@@ -150,12 +186,11 @@ namespace Knaeckebot.Models
                         else
                         {
                             // If it fails, create a new variable or convert the type
-                            var incrementVar = currentSequence.FindVariableByName(VariableName);
-                            if (incrementVar != null)
+                            if (variable != null)
                             {
                                 // Variable exists but is not a number variable - convert
-                                incrementVar.Type = VariableType.Number;
-                                incrementVar.NumberValue = IncrementValue; // Start with the increment value
+                                variable.Type = VariableType.Number;
+                                variable.NumberValue = IncrementValue; // Start with the increment value
                                 LogManager.Log($"Variable {VariableName} converted to number variable and set to {IncrementValue}");
                             }
                             else
@@ -177,12 +212,11 @@ namespace Knaeckebot.Models
                         else
                         {
                             // If it fails, create a new variable or convert the type
-                            var decrementVar = currentSequence.FindVariableByName(VariableName);
-                            if (decrementVar != null)
+                            if (variable != null)
                             {
                                 // Variable exists but is not a number variable - convert
-                                decrementVar.Type = VariableType.Number;
-                                decrementVar.NumberValue = -IncrementValue; // Start with the negative increment value
+                                variable.Type = VariableType.Number;
+                                variable.NumberValue = -IncrementValue; // Start with the negative increment value
                                 LogManager.Log($"Variable {VariableName} converted to number variable and set to {-IncrementValue}");
                             }
                             else
@@ -195,18 +229,17 @@ namespace Knaeckebot.Models
                         break;
 
                     case VariableActionType.AppendText:
-                        var appendVar = currentSequence.FindVariableByName(VariableName);
-                        if (appendVar != null && appendVar.Type == VariableType.Text)
+                        if (variable != null && variable.Type == VariableType.Text)
                         {
-                            appendVar.TextValue += Value ?? string.Empty;
-                            LogManager.Log($"Text '{Value}' appended to variable {VariableName}, new value: '{appendVar.TextValue}'");
+                            variable.TextValue += Value ?? string.Empty;
+                            LogManager.Log($"Text '{Value}' appended to variable {VariableName}, new value: '{variable.TextValue}'");
                         }
-                        else if (appendVar != null)
+                        else if (variable != null)
                         {
                             // If the variable exists but is not text, convert
-                            string currentValue = appendVar.GetValueAsString();
-                            appendVar.Type = VariableType.Text;
-                            appendVar.TextValue = currentValue + (Value ?? string.Empty);
+                            string currentValue = variable.GetValueAsString();
+                            variable.Type = VariableType.Text;
+                            variable.TextValue = currentValue + (Value ?? string.Empty);
                             LogManager.Log($"Variable {VariableName} converted to text variable and text '{Value}' appended");
                         }
                         else
@@ -218,13 +251,23 @@ namespace Knaeckebot.Models
                         break;
 
                     case VariableActionType.ClearValue:
-                        var clearVar = currentSequence.FindVariableByName(VariableName);
-                        if (clearVar != null)
+                        if (variable != null)
                         {
-                            if (clearVar.Type == VariableType.Text)
-                                clearVar.TextValue = string.Empty;
-                            else
-                                clearVar.NumberValue = 0;
+                            switch (variable.Type)
+                            {
+                                case VariableType.Text:
+                                    variable.TextValue = string.Empty;
+                                    break;
+                                case VariableType.Number:
+                                    variable.NumberValue = 0;
+                                    break;
+                                case VariableType.Boolean:
+                                    variable.BoolValue = false;
+                                    break;
+                                case VariableType.List:
+                                    variable.ListValue = string.Empty;
+                                    break;
+                            }
                             LogManager.Log($"Variable {VariableName} cleared");
                         }
                         else
@@ -234,6 +277,144 @@ namespace Knaeckebot.Models
                             LogManager.Log($"New empty variable {VariableName} created");
                         }
                         break;
+
+                    case VariableActionType.ToggleBoolean:
+                        if (variable != null && variable.Type == VariableType.Boolean)
+                        {
+                            variable.ToggleBoolValue();
+                            LogManager.Log($"Boolean variable {VariableName} toggled to {variable.BoolValue}");
+                        }
+                        else if (variable != null)
+                        {
+                            // Convert to boolean and initialize
+                            variable.Type = VariableType.Boolean;
+                            variable.BoolValue = true; // Default to true when toggling a non-boolean
+                            LogManager.Log($"Variable {VariableName} converted to boolean and set to true");
+                        }
+                        else
+                        {
+                            // Create new boolean variable defaulting to true
+                            var newVar = new SequenceVariable
+                            {
+                                Name = VariableName,
+                                Type = VariableType.Boolean,
+                                BoolValue = true
+                            };
+                            currentSequence.Variables.Add(newVar);
+                            LogManager.Log($"New boolean variable {VariableName} created with value true");
+                        }
+                        break;
+
+                    case VariableActionType.AddListItem:
+                        if (variable != null && variable.Type == VariableType.List)
+                        {
+                            variable.AddListItem(Value ?? string.Empty);
+                            LogManager.Log($"Item '{Value}' added to list variable {VariableName}");
+                        }
+                        else if (variable != null)
+                        {
+                            // Convert to list and add item
+                            string oldValue = variable.GetValueAsString();
+                            variable.Type = VariableType.List;
+
+                            // If old value exists, use it as the first item
+                            if (!string.IsNullOrEmpty(oldValue))
+                                variable.ListValue = oldValue;
+
+                            variable.AddListItem(Value ?? string.Empty);
+                            LogManager.Log($"Variable {VariableName} converted to list and item '{Value}' added");
+                        }
+                        else
+                        {
+                            // Create new list with first item
+                            var newVar = new SequenceVariable
+                            {
+                                Name = VariableName,
+                                Type = VariableType.List,
+                                ListValue = Value ?? string.Empty
+                            };
+                            currentSequence.Variables.Add(newVar);
+                            LogManager.Log($"New list variable {VariableName} created with first item '{Value}'");
+                        }
+                        break;
+
+                    case VariableActionType.RemoveListItem:
+                        if (variable != null && variable.Type == VariableType.List)
+                        {
+                            if (variable.RemoveListItemAt(ListIndex))
+                            {
+                                LogManager.Log($"Item at index {ListIndex} removed from list variable {VariableName}");
+                            }
+                            else
+                            {
+                                LogManager.Log($"Failed to remove item at index {ListIndex} from list {VariableName}");
+                            }
+                        }
+                        else
+                        {
+                            LogManager.Log($"Cannot remove list item: {VariableName} is not a list or doesn't exist");
+                        }
+                        break;
+
+                    case VariableActionType.ClearList:
+                        if (variable != null && variable.Type == VariableType.List)
+                        {
+                            variable.ClearList();
+                            LogManager.Log($"List variable {VariableName} cleared");
+                        }
+                        else if (variable != null)
+                        {
+                            // Convert to empty list
+                            variable.Type = VariableType.List;
+                            variable.ListValue = string.Empty;
+                            LogManager.Log($"Variable {VariableName} converted to empty list");
+                        }
+                        else
+                        {
+                            // Create new empty list
+                            var newVar = new SequenceVariable
+                            {
+                                Name = VariableName,
+                                Type = VariableType.List,
+                                ListValue = string.Empty
+                            };
+                            currentSequence.Variables.Add(newVar);
+                            LogManager.Log($"New empty list variable {VariableName} created");
+                        }
+                        break;
+
+                    case VariableActionType.AddTableRow:
+                        if (variable != null && variable.Type == VariableType.List)
+                        {
+                            variable.AddTableRow(Value ?? string.Empty);
+                            LogManager.Log($"Row '{Value}' added to table variable {VariableName}");
+                        }
+                        else if (variable != null)
+                        {
+                            // Convert to table (list with newlines) and add row
+                            string oldValue = variable.GetValueAsString();
+                            variable.Type = VariableType.List;
+
+                            // If old value exists, use it as the first row
+                            if (!string.IsNullOrEmpty(oldValue))
+                                variable.ListValue = oldValue;
+
+                            variable.AddTableRow(Value ?? string.Empty);
+                            LogManager.Log($"Variable {VariableName} converted to table and row '{Value}' added");
+                        }
+                        else
+                        {
+                            // Create new table with first row
+                            var newVar = new SequenceVariable
+                            {
+                                Name = VariableName,
+                                Type = VariableType.List,
+                                ListValue = Value ?? string.Empty
+                            };
+                            currentSequence.Variables.Add(newVar);
+                            LogManager.Log($"New table variable {VariableName} created with first row '{Value}'");
+                        }
+                        break;
                 }
             }
             catch (Exception ex)
@@ -241,6 +422,36 @@ namespace Knaeckebot.Models
                 LogManager.Log($"Error in variable action: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Determines the appropriate variable type based on a string value
+        /// </summary>
+        private VariableType DetermineVariableType(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return VariableType.Text;
+
+            // Check if it's a boolean
+            if (bool.TryParse(value, out _) ||
+                value.ToLower() == "yes" || value.ToLower() == "no" ||
+                value.ToLower() == "y" || value.ToLower() == "n" ||
+                value == "1" || value == "0" ||
+                value.ToLower() == "on" || value.ToLower() == "off")
+            {
+                return VariableType.Boolean;
+            }
+
+            // Check if it's a number
+            if (int.TryParse(value, out _))
+                return VariableType.Number;
+
+            // Check if it looks like a list (contains semicolons)
+            if (value.Contains(';'))
+                return VariableType.List;
+
+            // Default to text
+            return VariableType.Text;
         }
 
         /// <summary>
@@ -257,7 +468,8 @@ namespace Knaeckebot.Models
                 VariableName = this.VariableName,
                 Value = this.Value,
                 IncrementValue = this.IncrementValue,
-                ActionType = this.ActionType
+                ActionType = this.ActionType,
+                ListIndex = this.ListIndex
             };
         }
 
@@ -273,6 +485,11 @@ namespace Knaeckebot.Models
                 VariableActionType.Decrement => $"Variable: Decrease '{VariableName}' by {IncrementValue}",
                 VariableActionType.AppendText => $"Variable: Append '{Value}' to '{VariableName}'",
                 VariableActionType.ClearValue => $"Variable: Clear '{VariableName}'",
+                VariableActionType.ToggleBoolean => $"Variable: Toggle boolean '{VariableName}'",
+                VariableActionType.AddListItem => $"Variable: Add item '{Value}' to list '{VariableName}'",
+                VariableActionType.RemoveListItem => $"Variable: Remove item at index {ListIndex} from list '{VariableName}'",
+                VariableActionType.ClearList => $"Variable: Clear list '{VariableName}'",
+                VariableActionType.AddTableRow => $"Variable: Add row '{Value}' to table '{VariableName}'",
                 _ => $"Variable action: {VariableName}"
             };
         }

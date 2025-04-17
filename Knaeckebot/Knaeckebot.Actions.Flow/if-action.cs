@@ -371,16 +371,139 @@ namespace Knaeckebot.Models
 
                 LogManager.Log($"Comparing: '{leftValue}' {Operator} '{rightValue}'");
 
-                // Perform comparison
-                bool result = Operator switch
+                // Get variable types if applicable
+                VariableType leftType = VariableType.Text;
+                VariableType rightType = VariableType.Text;
+
+                // Check variable types if comparing variables
+                bool leftIsVariable = LeftSourceType == ConditionSourceType.Variable;
+                bool rightIsVariable = RightSourceType == ConditionSourceType.Variable;
+
+                if (leftIsVariable || rightIsVariable)
                 {
-                    ComparisonOperator.Equals => leftValue.Equals(rightValue),
-                    ComparisonOperator.Contains => leftValue.Contains(rightValue),
-                    ComparisonOperator.StartsWith => leftValue.StartsWith(rightValue),
-                    ComparisonOperator.EndsWith => leftValue.EndsWith(rightValue),
-                    ComparisonOperator.NotEquals => !leftValue.Equals(rightValue),
-                    _ => false
-                };
+                    var currentSequence = SequenceManager.CurrentSequence;
+                    if (currentSequence != null)
+                    {
+                        if (leftIsVariable)
+                        {
+                            var leftVar = currentSequence.FindVariableByName(LeftVariableName);
+                            if (leftVar != null)
+                                leftType = leftVar.Type;
+                        }
+
+                        if (rightIsVariable)
+                        {
+                            var rightVar = currentSequence.FindVariableByName(RightVariableName);
+                            if (rightVar != null)
+                                rightType = rightVar.Type;
+                        }
+                    }
+                }
+
+                // Perform comparison based on variable types
+                bool result;
+
+                // Special case for Boolean variables
+                if ((leftIsVariable && leftType == VariableType.Boolean) ||
+                    (rightIsVariable && rightType == VariableType.Boolean))
+                {
+                    // Try to convert both sides to boolean
+                    bool leftBool = false;
+                    bool rightBool = false;
+
+                    bool leftParsed = bool.TryParse(leftValue, out leftBool) ||
+                                     (leftValue == "1") ||
+                                     (leftValue.ToLower() == "yes") ||
+                                     (leftValue.ToLower() == "y") ||
+                                     (leftValue.ToLower() == "on");
+
+                    bool rightParsed = bool.TryParse(rightValue, out rightBool) ||
+                                      (rightValue == "1") ||
+                                      (rightValue.ToLower() == "yes") ||
+                                      (rightValue.ToLower() == "y") ||
+                                      (rightValue.ToLower() == "on");
+
+                    // If either side couldn't be parsed, default to string comparison
+                    if (!leftParsed || !rightParsed)
+                    {
+                        result = CompareStrings(leftValue, rightValue);
+                    }
+                    else
+                    {
+                        // Compare as booleans
+                        result = Operator switch
+                        {
+                            ComparisonOperator.Equals => leftBool == rightBool,
+                            ComparisonOperator.NotEquals => leftBool != rightBool,
+                            _ => CompareStrings(leftValue, rightValue) // Fall back to string comparison for other operators
+                        };
+                    }
+                }
+                // Special case for Number variables
+                else if ((leftIsVariable && leftType == VariableType.Number) ||
+                         (rightIsVariable && rightType == VariableType.Number))
+                {
+                    // Try to convert both sides to numbers
+                    int leftNum = 0;
+                    int rightNum = 0;
+
+                    bool leftParsed = int.TryParse(leftValue, out leftNum);
+                    bool rightParsed = int.TryParse(rightValue, out rightNum);
+
+                    // If either side couldn't be parsed, default to string comparison
+                    if (!leftParsed || !rightParsed)
+                    {
+                        result = CompareStrings(leftValue, rightValue);
+                    }
+                    else
+                    {
+                        // Compare as numbers
+                        result = Operator switch
+                        {
+                            ComparisonOperator.Equals => leftNum == rightNum,
+                            ComparisonOperator.NotEquals => leftNum != rightNum,
+                            ComparisonOperator.Contains => false, // N/A for numbers
+                            ComparisonOperator.StartsWith => false, // N/A for numbers
+                            ComparisonOperator.EndsWith => false, // N/A for numbers
+                            _ => CompareStrings(leftValue, rightValue) // Fall back to string comparison
+                        };
+                    }
+                }
+                // List comparison
+                else if ((leftIsVariable && leftType == VariableType.List) ||
+                         (rightIsVariable && rightType == VariableType.List))
+                {
+                    // For lists, "Contains" checks if an item is in the list
+                    if (Operator == ComparisonOperator.Contains)
+                    {
+                        // If left is list, check if it contains right
+                        if (leftIsVariable && leftType == VariableType.List)
+                        {
+                            string[] items = leftValue.Split(';');
+                            result = items.Contains(rightValue);
+                        }
+                        // If right is list, check if it contains left
+                        else if (rightIsVariable && rightType == VariableType.List)
+                        {
+                            string[] items = rightValue.Split(';');
+                            result = items.Contains(leftValue);
+                        }
+                        else
+                        {
+                            result = false;
+                        }
+                    }
+                    else
+                    {
+                        // For other operators, compare as strings
+                        result = CompareStrings(leftValue, rightValue);
+                    }
+                }
+                // Default string comparison
+                else
+                {
+                    result = CompareStrings(leftValue, rightValue);
+                }
 
                 LogManager.Log($"Comparison result: {result}");
                 return result;
@@ -390,6 +513,22 @@ namespace Knaeckebot.Models
                 LogManager.Log($"Error evaluating condition: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Compares two string values based on the current operator
+        /// </summary>
+        private bool CompareStrings(string leftValue, string rightValue)
+        {
+            return Operator switch
+            {
+                ComparisonOperator.Equals => leftValue.Equals(rightValue),
+                ComparisonOperator.Contains => leftValue.Contains(rightValue),
+                ComparisonOperator.StartsWith => leftValue.StartsWith(rightValue),
+                ComparisonOperator.EndsWith => leftValue.EndsWith(rightValue),
+                ComparisonOperator.NotEquals => !leftValue.Equals(rightValue),
+                _ => false
+            };
         }
 
         /// <summary>

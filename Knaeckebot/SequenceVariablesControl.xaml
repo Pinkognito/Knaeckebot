@@ -7,6 +7,16 @@
              xmlns:converters="clr-namespace:Knaeckebot.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+        <Style x:Key="TextBoxMultilineStyle" TargetType="TextBox">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+    </UserControl.Resources>
+
     <Expander Header="Sequence Variables" 
               IsExpanded="True" 
               Margin="5">
@@ -18,16 +28,18 @@
 
             <!-- Toolbar for variables -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5,0,5">
-                <Button Content="Add Variable" Command="{Binding AddVariableCommand}"/>
+                <Button Content="Add Variable" Command="{Binding AddVariableCommand}" Margin="0,0,5,0"/>
                 <Button Content="Delete Variable" Command="{Binding DeleteVariableCommand}" 
-                        IsEnabled="{Binding IsVariableSelected}"/>
+                        IsEnabled="{Binding IsVariableSelected}" Margin="0,0,5,0"/>
+                <Button Content="Clear All" Command="{Binding ClearVariablesCommand}" 
+                        IsEnabled="{Binding HasVariables}" Margin="0,0,5,0"/>
             </StackPanel>
 
             <!-- Variable list -->
             <ListView Grid.Row="1" 
                       ItemsSource="{Binding SelectedSequence.Variables}" 
                       SelectedItem="{Binding SelectedVariable}"
-                      Height="100" BorderThickness="1" Margin="0,0,0,5">
+                      Height="120" BorderThickness="1" Margin="0,0,0,5">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Name" Width="120">
@@ -61,6 +73,25 @@
                                     <TextBox Text="{Binding NumberValue, UpdateSourceTrigger=PropertyChanged}" 
                                              Width="70"
                                              Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Number}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Boolean Value" Width="100">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding BoolValue, UpdateSourceTrigger=PropertyChanged}" 
+                                              VerticalAlignment="Center" HorizontalAlignment="Center"
+                                              Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Boolean}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="List Value" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding ListValue, UpdateSourceTrigger=PropertyChanged}" 
+                                             Width="140" Style="{StaticResource TextBoxMultilineStyle}"
+                                             ToolTip="Use semicolons (;) to separate items, newlines for rows"
+                                             Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=List}"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

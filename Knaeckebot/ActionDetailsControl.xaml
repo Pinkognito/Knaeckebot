@@ -20,6 +20,8 @@
         <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter"/>
         <converters:KeyToKeyItemConverter x:Key="KeyToKeyItemConverter"/>
         <converters:KeyArrayToStringConverter x:Key="KeyArrayToStringConverter"/>
+        <converters:VariableActionTypeToVisibilityConverter x:Key="VariableActionTypeToVisibilityConverter"/>
+        <converters:ListValueToDisplayConverter x:Key="ListValueToDisplayConverter"/>
 
         <!-- Style for compact branch action items -->
         <Style x:Key="CompactBranchActionStyle" TargetType="ListViewItem">
@@ -131,7 +133,7 @@
 
                 <!-- Specific properties for loop actions -->
                 <GroupBox Header="Loop Details" Margin="0,0,0,5" Padding="5"
-                      Visibility="{Binding SelectedAction, Converter={StaticResource ObjectToTypeVisibilityConverter}, ConverterParameter=LoopAction}">
+      Visibility="{Binding SelectedAction, Converter={StaticResource ObjectToTypeVisibilityConverter}, ConverterParameter=LoopAction}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -147,127 +149,178 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Max. iterations:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"/>
+               VerticalAlignment="Center"/>
                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedAction.MaxIterations, UpdateSourceTrigger=PropertyChanged}" 
-                             Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"/>
+             Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="With condition:" Margin="0,0,5,0" 
-                               VerticalAlignment="Center"/>
-                        <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding SelectedAction.UseCondition}" 
-                              Margin="0,5,0,5" />
+                        <!-- List variable iteration option -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Use list variable:" Margin="0,0,5,0" 
+               VerticalAlignment="Center"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding SelectedAction.UseVariableList}" 
+              Margin="0,5,0,5" x:Name="UseListVariableCheckBox" />
+
+                        <!-- List variable settings (only visible when UseVariableList is activated) -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="List variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding VariableNames}"
+              Text="{Binding SelectedAction.ListVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              SelectedValue="{Binding SelectedAction.ListVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              IsEditable="True"
+              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Current item variable -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Item variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding VariableNames}"
+              Text="{Binding SelectedAction.CurrentItemVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              SelectedValue="{Binding SelectedAction.CurrentItemVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              IsEditable="True"
+              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Index tracking option -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Track index:" Margin="0,0,5,0" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding SelectedAction.UseIndexVariable}" 
+              Margin="0,5,0,5"
+              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Index variable -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Index variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding VariableNames}"
+              Text="{Binding SelectedAction.IndexVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              SelectedValue="{Binding SelectedAction.IndexVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              IsEditable="True"
+              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="With condition:" Margin="0,0,5,0" 
+               VerticalAlignment="Center"/>
+                        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding SelectedAction.UseCondition}" 
+              Margin="0,5,0,5" />
 
                         <!-- Condition area (only visible when UseCondition is activated) -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Left side:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"
-                               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
-                          Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Left side:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Grid Grid.Row="7" Grid.Column="1" Margin="0,0,0,5"
+          Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <ComboBox Grid.Column="0" Width="110" Margin="0,0,5,0"
-                                  ItemsSource="{Binding Source={StaticResource ConditionSourceTypeValues}}"
-                                  SelectedItem="{Binding SelectedAction.LeftSourceType}"/>
+                  ItemsSource="{Binding Source={StaticResource ConditionSourceTypeValues}}"
+                  SelectedItem="{Binding SelectedAction.LeftSourceType}"/>
 
                             <!-- Variable -->
                             <ComboBox Grid.Column="1" 
-                                  ItemsSource="{Binding VariableNames}"
-                                  SelectedValue="{Binding SelectedAction.LeftVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Text="{Binding SelectedAction.LeftVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  IsEditable="True"
-                                  Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+                  ItemsSource="{Binding VariableNames}"
+                  SelectedValue="{Binding SelectedAction.LeftVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Text="{Binding SelectedAction.LeftVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  IsEditable="True"
+                  Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
 
                             <!-- Text -->
                             <TextBox Grid.Column="1" 
-                                 Text="{Binding SelectedAction.LeftCustomText, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
+                 Text="{Binding SelectedAction.LeftCustomText, UpdateSourceTrigger=PropertyChanged}"
+                 Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
 
                             <!-- Clipboard (no input field needed) -->
                             <TextBlock Grid.Column="1" Text="Current clipboard content"
-                                   Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"
-                                   Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                   Visibility="{Binding SelectedAction.LeftSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"
+                   Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         </Grid>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Comparison type:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"
-                               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <ComboBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5"
-                              ItemsSource="{Binding Source={StaticResource ComparisonOperatorValues}}"
-                              SelectedItem="{Binding SelectedAction.Operator}"
-                              Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Comparison type:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="8" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding Source={StaticResource ComparisonOperatorValues}}"
+              SelectedItem="{Binding SelectedAction.Operator}"
+              Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Right side:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"
-                               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Grid Grid.Row="4" Grid.Column="1" Margin="0,0,0,5"
-                          Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Right side:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Grid Grid.Row="9" Grid.Column="1" Margin="0,0,0,5"
+          Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <ComboBox Grid.Column="0" Width="110" Margin="0,0,5,0"
-                                  ItemsSource="{Binding Source={StaticResource ConditionSourceTypeValues}}"
-                                  SelectedItem="{Binding SelectedAction.RightSourceType}"/>
+                  ItemsSource="{Binding Source={StaticResource ConditionSourceTypeValues}}"
+                  SelectedItem="{Binding SelectedAction.RightSourceType}"/>
 
                             <!-- Variable -->
                             <ComboBox Grid.Column="1" 
-                                  ItemsSource="{Binding VariableNames}"
-                                  SelectedValue="{Binding SelectedAction.RightVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Text="{Binding SelectedAction.RightVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  IsEditable="True"
-                                  Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+                  ItemsSource="{Binding VariableNames}"
+                  SelectedValue="{Binding SelectedAction.RightVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Text="{Binding SelectedAction.RightVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  IsEditable="True"
+                  Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
 
                             <!-- Text -->
                             <TextBox Grid.Column="1" 
-                                 Text="{Binding SelectedAction.RightCustomText, UpdateSourceTrigger=PropertyChanged}"
-                                 Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
+                 Text="{Binding SelectedAction.RightCustomText, UpdateSourceTrigger=PropertyChanged}"
+                 Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
 
                             <!-- Clipboard (no input field needed) -->
                             <TextBlock Grid.Column="1" Text="Current clipboard content"
-                                   Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"
-                                   Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                   Visibility="{Binding SelectedAction.RightSourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"
+                   Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Loop actions - Header with control options -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Text="Actions in the loop:" 
-                               Margin="0,10,0,5" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" Text="Actions in the loop:" 
+               Margin="0,10,0,5" FontWeight="Bold"/>
 
                         <!-- Control elements for loop actions -->
-                        <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,5">
+                        <StackPanel Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,5">
                             <TextBlock Text="{Binding SelectedAction.LoopActions.Count, StringFormat=Number of actions: {0}}"
-                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <Button Content="Move up" Margin="0,0,5,0" Click="MoveLoopActionUp_Click"
-                                x:Name="MoveUpButton"/>
+                x:Name="MoveUpButton"/>
                             <Button Content="Move down" Margin="0,0,5,0" Click="MoveLoopActionDown_Click"
-                                x:Name="MoveDownButton"/>
+                x:Name="MoveDownButton"/>
                             <Button Content="Delete" Margin="0,0,5,0" Click="DeleteLoopAction_Click"
-                                x:Name="DeleteButton"/>
+                x:Name="DeleteButton"/>
                             <Button Content="Copy" Margin="0,0,5,0" Click="CopyLoopAction_Click"
-                                x:Name="CopyButton" ToolTip="Copy selected actions"/>
+                x:Name="CopyButton" ToolTip="Copy selected actions"/>
                             <Button Content="Paste" Margin="0,0,5,0" Click="PasteLoopAction_Click"
-                                x:Name="PasteButton"/>
+                x:Name="PasteButton"/>
                         </StackPanel>
 
                         <!-- Loop hint -->
-                        <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" 
-                               Text="Note: To add actions to the loop, copy actions from the main action list with Ctrl+C and paste using the Paste button above."
-                               TextWrapping="Wrap" Margin="0,5,0,5" FontStyle="Italic"/>
+                        <TextBlock Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" 
+               Text="Note: To add actions to the loop, copy actions from the main action list with Ctrl+C and paste using the Paste button above."
+               TextWrapping="Wrap" Margin="0,5,0,5" FontStyle="Italic"/>
 
                         <!-- ListView for loop actions -->
-                        <ListView Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2"
-                              x:Name="LoopActionsListView"
-                              ItemsSource="{Binding SelectedAction.LoopActions}"
-                              SelectionMode="Extended"
-                              MinHeight="150" MaxHeight="300"
-                              Margin="0,5,0,0"
-                              BorderThickness="1"
-                              SelectionChanged="LoopActionsListView_SelectionChanged"
-                              MouseDoubleClick="BranchAction_DoubleClick">
+                        <ListView Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="2"
+              x:Name="LoopActionsListView"
+              ItemsSource="{Binding SelectedAction.LoopActions}"
+              SelectionMode="Extended"
+              MinHeight="150" MaxHeight="300"
+              Margin="0,5,0,0"
+              BorderThickness="1"
+              SelectionChanged="LoopActionsListView_SelectionChanged"
+              MouseDoubleClick="BranchAction_DoubleClick">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -282,7 +335,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
-                                                 VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                 VerticalAlignment="Center" Margin="0,0,5,0"/>
 
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
@@ -309,6 +362,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
@@ -320,7 +375,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Variable name:" Margin="0,0,5,5" 
                               VerticalAlignment="Center"/>
 
-                        <!-- HERE IS THE CHANGE: ComboBox with corrected binding for the variable -->
+                        <!-- ComboBox with corrected binding for the variable -->
                         <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"
                               ItemsSource="{Binding VariableNames}"
                               Text="{Binding SelectedAction.VariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -342,6 +397,30 @@
                             Text="{Binding SelectedAction.Value, UpdateSourceTrigger=PropertyChanged}"
                             Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=AppendText}"/>
 
+                        <!-- Only with AddListItem and AddTableRow: Item/Row value input field -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Item:" Margin="0,0,5,5" 
+                              VerticalAlignment="Center"
+                              Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=AddListItem}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+                            Text="{Binding SelectedAction.Value, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=AddListItem}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Row:" Margin="0,0,5,5" 
+                              VerticalAlignment="Center"
+                              Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=AddTableRow}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+                            Text="{Binding SelectedAction.Value, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="Use semicolons (;) to separate columns"
+                            Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=AddTableRow}"/>
+
+                        <!-- Only with RemoveListItem: List index field -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="List index:" Margin="0,0,5,5" 
+                              VerticalAlignment="Center"
+                              Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=RemoveListItem}"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"
+                            Text="{Binding SelectedAction.ListIndex, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=RemoveListItem}"/>
+
                         <!-- Only with Increment/Decrement: Value input field for increment value -->
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Change amount:" Margin="0,0,5,5" 
                               VerticalAlignment="Center"
@@ -357,8 +436,14 @@
                             Text="{Binding SelectedAction.IncrementValue, UpdateSourceTrigger=PropertyChanged}"
                             Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Decrement}"/>
 
-                        <!-- Hint -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" TextWrapping="Wrap">
+                        <!-- Hint for list operations -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" TextWrapping="Wrap"
+                                Visibility="{Binding SelectedAction.ActionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=List}">
+                            Lists use semicolons (;) as separators. For tables, use semicolons to separate columns and newlines to separate rows.
+                        </TextBlock>
+
+                        <!-- General hint -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" TextWrapping="Wrap">
                             Variables must be defined in the sequence. They will be created automatically when using a matching name.
                         </TextBlock>
                     </Grid>
@@ -1175,6 +1260,7 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Action type:" Margin="0,0,5,5" 
@@ -1202,6 +1288,19 @@
                                           VerticalAlignment="Center" x:Name="VariableIncrementLabel" Visibility="Collapsed"/>
                                     <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"
                                         x:Name="VariableActionIncrement" Visibility="Collapsed"/>
+
+                                    <!-- List index for item removal -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="List index:" Margin="0,0,5,5"
+                                          VerticalAlignment="Center" x:Name="VariableListIndexLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5" Width="80" HorizontalAlignment="Left"
+                                        x:Name="VariableListIndex" Visibility="Collapsed"/>
+
+                                    <!-- Item/row input field -->
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Item/Row:" Margin="0,0,5,5"
+                                          VerticalAlignment="Center" x:Name="VariableItemLabel" Visibility="Collapsed"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,5"
+                                        x:Name="VariableItemValue" Visibility="Collapsed"
+                                        ToolTip="For rows, use semicolons (;) to separate columns"/>
                                 </Grid>
                             </GroupBox>
 

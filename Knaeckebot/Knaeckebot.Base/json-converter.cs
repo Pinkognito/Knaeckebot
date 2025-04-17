@@ -45,7 +45,8 @@ namespace Knaeckebot.Models
                             actionType = "BrowserAction";
                         }
                         else if (document.RootElement.TryGetProperty("VariableName", out _) ||
-                                document.RootElement.TryGetProperty("IncrementValue", out _))
+                                document.RootElement.TryGetProperty("IncrementValue", out _) ||
+                                document.RootElement.TryGetProperty("ListIndex", out _))
                         {
                             actionType = "VariableAction";
                         }
@@ -65,7 +66,8 @@ namespace Knaeckebot.Models
                         actionType = "ClipboardAction";
                     }
                     else if (document.RootElement.TryGetProperty("MaxIterations", out _) ||
-                             document.RootElement.TryGetProperty("LoopActions", out _))
+                             document.RootElement.TryGetProperty("LoopActions", out _) ||
+                             document.RootElement.TryGetProperty("ListVariableName", out _))
                     {
                         actionType = "LoopAction";
                     }
@@ -253,6 +255,100 @@ namespace Knaeckebot.Models
                     property.WriteTo(writer);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// JSON converter for SequenceVariable to handle the new variable types
+    /// </summary>
+    public class SequenceVariableJsonConverter : JsonConverter<SequenceVariable>
+    {
+        public override SequenceVariable Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType != JsonTokenType.StartObject)
+                throw new JsonException("Expected start of object");
+
+            var variable = new SequenceVariable();
+
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndObject)
+                    break;
+
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                    throw new JsonException("Expected property name");
+
+                string propertyName = reader.GetString() ?? string.Empty;
+                reader.Read();
+
+                switch (propertyName)
+                {
+                    case "Name":
+                        variable.Name = reader.GetString() ?? string.Empty;
+                        break;
+
+                    case "Type":
+                        if (reader.TokenType == JsonTokenType.String)
+                        {
+                            string typeStr = reader.GetString() ?? "Text";
+                            if (Enum.TryParse<VariableType>(typeStr, out var type))
+                                variable.Type = type;
+                        }
+                        else if (reader.TokenType == JsonTokenType.Number)
+                        {
+                            int typeInt = reader.GetInt32();
+                            if (Enum.IsDefined(typeof(VariableType), typeInt))
+                                variable.Type = (VariableType)typeInt;
+                        }
+                        break;
+
+                    case "TextValue":
+                        variable.TextValue = reader.GetString() ?? string.Empty;
+                        break;
+
+                    case "NumberValue":
+                        if (reader.TokenType == JsonTokenType.Number)
+                            variable.NumberValue = reader.GetInt32();
+                        break;
+
+                    case "BoolValue":
+                        if (reader.TokenType == JsonTokenType.True)
+                            variable.BoolValue = true;
+                        else if (reader.TokenType == JsonTokenType.False)
+                            variable.BoolValue = false;
+                        break;
+
+                    case "ListValue":
+                        variable.ListValue = reader.GetString() ?? string.Empty;
+                        break;
+
+                    case "Description":
+                        variable.Description = reader.GetString() ?? string.Empty;
+                        break;
+
+                    default:
+                        // Skip unknown properties
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            return variable;
+        }
+
+        public override void Write(Utf8JsonWriter writer, SequenceVariable value, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+
+            writer.WriteString("Name", value.Name);
+            writer.WriteString("Type", value.Type.ToString());
+            writer.WriteString("TextValue", value.TextValue);
+            writer.WriteNumber("NumberValue", value.NumberValue);
+            writer.WriteBoolean("BoolValue", value.BoolValue);
+            writer.WriteString("ListValue", value.ListValue);
+            writer.WriteString("Description", value.Description);
+
+            writer.WriteEndObject();
         }
     }
 }

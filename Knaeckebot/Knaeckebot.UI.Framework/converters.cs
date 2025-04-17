@@ -125,8 +125,33 @@ namespace Knaeckebot.Converters
                 return $"Loop: {loopAction.LoopActions.Count} actions, Max: {loopAction.MaxIterations}" +
                        (loopAction.UseCondition ? ", with condition" : "");
             }
+            else if (value is VariableAction variableAction)
+            {
+                switch (variableAction.ActionType)
+                {
+                    case VariableActionType.ToggleBoolean:
+                        return $"Toggle boolean: {variableAction.VariableName}";
+                    case VariableActionType.AddListItem:
+                        return $"Add to list: {variableAction.VariableName}, Item: \"{EllipsisText(variableAction.Value, 15)}\"";
+                    case VariableActionType.RemoveListItem:
+                        return $"Remove from list: {variableAction.VariableName}, Index: {variableAction.ListIndex}";
+                    case VariableActionType.ClearList:
+                        return $"Clear list: {variableAction.VariableName}";
+                    case VariableActionType.AddTableRow:
+                        return $"Add table row: {variableAction.VariableName}, Row: \"{EllipsisText(variableAction.Value, 15)}\"";
+                    default:
+                        // Use existing behavior for other types
+                        break;
+                }
+            }
 
             return value?.ToString() ?? string.Empty;
+        }
+
+        private string EllipsisText(string text, int maxLength)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            return text.Length > maxLength ? text.Substring(0, maxLength - 3) + "..." : text;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -152,6 +177,7 @@ namespace Knaeckebot.Converters
                 ClipboardAction => "Clipboard Action",
                 VariableAction => "Variable Action",
                 LoopAction => "Loop Action",
+                IfAction => "If Action",
                 _ => "Unknown Action"
             };
         }
@@ -208,6 +234,51 @@ namespace Knaeckebot.Converters
                 "FindElementAndClick" => actionType == BrowserActionType.FindElementAndClick,
                 "ExecuteJavaScript" => actionType == BrowserActionType.ExecuteJavaScript,
                 "GetCoordinates" => actionType == BrowserActionType.GetCoordinates,
+                _ => false
+            };
+
+            return visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Converts a VariableActionType to Visibility, depending on the parameter
+    /// </summary>
+    public class VariableActionTypeToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not VariableActionType actionType || parameter is not string param)
+            {
+                return Visibility.Collapsed;
+            }
+
+            bool visible = param switch
+            {
+                "SetValue" => actionType == VariableActionType.SetValue,
+                "Increment" => actionType == VariableActionType.Increment,
+                "Decrement" => actionType == VariableActionType.Decrement,
+                "AppendText" => actionType == VariableActionType.AppendText,
+                "ClearValue" => actionType == VariableActionType.ClearValue,
+                "ToggleBoolean" => actionType == VariableActionType.ToggleBoolean,
+                "AddListItem" => actionType == VariableActionType.AddListItem,
+                "RemoveListItem" => actionType == VariableActionType.RemoveListItem,
+                "ClearList" => actionType == VariableActionType.ClearList,
+                "AddTableRow" => actionType == VariableActionType.AddTableRow,
+                "List" => actionType == VariableActionType.AddListItem ||
+                          actionType == VariableActionType.RemoveListItem ||
+                          actionType == VariableActionType.ClearList ||
+                          actionType == VariableActionType.AddTableRow,
+                "NeedIndex" => actionType == VariableActionType.RemoveListItem,
+                "NeedValue" => actionType == VariableActionType.SetValue ||
+                               actionType == VariableActionType.AppendText ||
+                               actionType == VariableActionType.AddListItem ||
+                               actionType == VariableActionType.AddTableRow,
                 _ => false
             };
 
@@ -320,6 +391,35 @@ namespace Knaeckebot.Converters
                 return string.Join(" + ", keys.Select(k => new KeyItem(k).DisplayValue));
             }
             return "(No keys assigned)";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Converts a list value to a readable string with line wrapping
+    /// </summary>
+    public class ListValueToDisplayConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string listValue && !string.IsNullOrEmpty(listValue))
+            {
+                // Replace semicolons with commas for display
+                string displayValue = listValue.Replace(";", ", ");
+
+                // Limit length for display
+                if (displayValue.Length > 50)
+                {
+                    displayValue = displayValue.Substring(0, 47) + "...";
+                }
+
+                return displayValue;
+            }
+            return "(Empty list)";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
