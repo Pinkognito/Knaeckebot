@@ -25,7 +25,8 @@ namespace Knaeckebot
             ClipboardAction,
             VariableAction,
             LoopAction,
-            IfAction // New action type for if condition
+            IfAction,
+            FileAction // New action type for file operations
         }
 
         /// <summary>
@@ -56,7 +57,8 @@ namespace Knaeckebot
                 5 => ActionType.ClipboardAction,
                 6 => ActionType.VariableAction,
                 7 => ActionType.LoopAction,
-                8 => ActionType.IfAction, // New case for if action
+                8 => ActionType.IfAction,
+                9 => ActionType.FileAction, // New case for file action
                 _ => ActionType.VariableAction // Default to Variable action
             };
 

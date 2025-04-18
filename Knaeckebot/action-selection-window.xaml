@@ -97,13 +97,23 @@
                     </StackPanel>
                 </StackPanel>
             </ListBoxItem>
-            <!-- If Action (New) -->
+            <!-- If Action -->
             <ListBoxItem>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="⚙️" FontSize="18" Margin="0,0,10,0" FontFamily="Consolas"/>
                     <StackPanel>
                         <TextBlock Text="If Action" FontWeight="Bold"/>
                         <TextBlock Text="Conditional actions" FontSize="11" Opacity="0.7"/>
+                    </StackPanel>
+                </StackPanel>
+            </ListBoxItem>
+            <!-- File Action (New) -->
+            <ListBoxItem>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📄" FontSize="18" Margin="0,0,10,0" FontFamily="Consolas"/>
+                    <StackPanel>
+                        <TextBlock Text="File Action" FontWeight="Bold"/>
+                        <TextBlock Text="Read file content" FontSize="11" Opacity="0.7"/>
                     </StackPanel>
                 </StackPanel>
             </ListBoxItem>

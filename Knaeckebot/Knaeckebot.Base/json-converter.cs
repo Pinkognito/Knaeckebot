@@ -76,6 +76,12 @@ namespace Knaeckebot.Models
                     {
                         actionType = "IfAction";
                     }
+                    else if (document.RootElement.TryGetProperty("FilePath", out _) ||
+                             document.RootElement.TryGetProperty("SourceType", out _) ||
+                             document.RootElement.TryGetProperty("DestinationType", out _))
+                    {
+                        actionType = "FileAction";
+                    }
                 }
 
                 // JSON as string for redeserialization
@@ -93,6 +99,7 @@ namespace Knaeckebot.Models
                     "VariableAction" => JsonSerializer.Deserialize<VariableAction>(json, options)!,
                     "LoopAction" => JsonSerializer.Deserialize<LoopAction>(json, options)!,
                     "IfAction" => JsonSerializer.Deserialize<IfAction>(json, options)!,
+                    "FileAction" => JsonSerializer.Deserialize<FileAction>(json, options)!,
                     _ => throw new JsonException($"Unknown action type: {actionType ?? "not found"}")
                 };
             }
@@ -115,6 +122,7 @@ namespace Knaeckebot.Models
                 VariableAction => "VariableAction",
                 LoopAction => "LoopAction",
                 IfAction => "IfAction",
+                FileAction => "FileAction",
                 _ => throw new JsonException($"Unsupported action type: {value.GetType().Name}")
             };
 
@@ -157,6 +165,10 @@ namespace Knaeckebot.Models
 
                 case IfAction ifAction:
                     WriteProperties(writer, ifAction, options);
+                    break;
+
+                case FileAction fileAction:
+                    WriteProperties(writer, fileAction, options);
                     break;
 
                 default:
@@ -234,6 +246,14 @@ namespace Knaeckebot.Models
         /// Writes the properties of an object without the surrounding object frame
         /// </summary>
         private void WriteProperties(Utf8JsonWriter writer, IfAction value, JsonSerializerOptions options)
+        {
+            WritePropertiesCommon(writer, value, options);
+        }
+
+        /// <summary>
+        /// Writes the properties of an object without the surrounding object frame
+        /// </summary>
+        private void WriteProperties(Utf8JsonWriter writer, FileAction value, JsonSerializerOptions options)
         {
             WritePropertiesCommon(writer, value, options);
         }

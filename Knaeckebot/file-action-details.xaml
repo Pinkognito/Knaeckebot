@@ -1,0 +1,114 @@
+<UserControl x:Class="Knaeckebot.Controls.FileActionDetailsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Knaeckebot.Controls"
+             xmlns:converters="clr-namespace:Knaeckebot.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="300">
+    <UserControl.Resources>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Source Type -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Source Type:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" 
+                 ItemsSource="{Binding Source={StaticResource FileSourceTypeValues}}"
+                 SelectedItem="{Binding SelectedAction.SourceType}"
+                 Margin="0,0,0,5"/>
+
+        <!-- File Path (for Text source type) -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="File Path:" Margin="0,0,5,5" VerticalAlignment="Center"
+                  Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
+        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"
+              Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding SelectedAction.FilePath, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Column="1" Content="..." Margin="2,0,0,0" Width="25" Click="BrowseButton_Click"/>
+        </Grid>
+        
+        <!-- Variable Name (for Variable source type) -->
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Variable Name:" Margin="0,0,5,5" VerticalAlignment="Center"
+                  Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" 
+                 ItemsSource="{Binding VariableNames}"
+                 Text="{Binding SelectedAction.VariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 SelectedValue="{Binding SelectedAction.VariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 IsEditable="True"
+                 Margin="0,0,0,5"
+                 Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+
+        <!-- Clipboard Hint (for Clipboard source type) -->
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Clipboard:" Margin="0,0,5,5" VerticalAlignment="Center"
+                  Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"/>
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="File path will be read from the clipboard" 
+                  Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,5"
+                  Visibility="{Binding SelectedAction.SourceType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"/>
+
+        <!-- Destination Type -->
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Destination Type:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="4" Grid.Column="1" 
+                 ItemsSource="{Binding Source={StaticResource FileDestinationTypeValues}}"
+                 SelectedItem="{Binding SelectedAction.DestinationType}"
+                 Margin="0,0,0,5"/>
+
+        <!-- Destination Variable Name (for Variable destination type) -->
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Destination Variable:" Margin="0,0,5,5" VerticalAlignment="Center"
+                  Visibility="{Binding SelectedAction.DestinationType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+        <ComboBox Grid.Row="5" Grid.Column="1" 
+                 ItemsSource="{Binding VariableNames}"
+                 Text="{Binding SelectedAction.DestinationVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 SelectedValue="{Binding SelectedAction.DestinationVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 IsEditable="True"
+                 Margin="0,0,0,5"
+                 Visibility="{Binding SelectedAction.DestinationType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Variable}"/>
+
+        <!-- Clipboard Hint (for Clipboard destination type) -->
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="Clipboard:" Margin="0,0,5,5" VerticalAlignment="Center"
+                  Visibility="{Binding SelectedAction.DestinationType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"/>
+        <TextBlock Grid.Row="6" Grid.Column="1" Text="File content will be copied to the clipboard" 
+                  Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,5"
+                  Visibility="{Binding SelectedAction.DestinationType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Clipboard}"/>
+
+        <!-- File Encoding -->
+        <TextBlock Grid.Row="7" Grid.Column="0" Text="File Encoding:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="7" Grid.Column="1" 
+                 ItemsSource="{Binding Source={StaticResource FileEncodingTypeValues}}"
+                 SelectedItem="{Binding SelectedAction.FileEncoding}"
+                 Margin="0,0,0,5"/>
+
+        <!-- Handle IO Exception -->
+        <TextBlock Grid.Row="8" Grid.Column="0" Text="Error Handling:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+        <CheckBox Grid.Row="8" Grid.Column="1" 
+                 Content="Handle IO Exceptions" 
+                 IsChecked="{Binding SelectedAction.HandleIOException}"
+                 Margin="0,0,0,5"/>
+
+        <!-- Help Text -->
+        <TextBlock Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" 
+                  Text="This action reads the content of a file specified by the source and puts it into the selected destination. If 'Handle IO Exceptions' is checked, issues with file access will be handled gracefully without aborting the sequence."
+                  TextWrapping="Wrap" Margin="0,10,0,0" Foreground="Gray"/>
+    </Grid>
+</UserControl>

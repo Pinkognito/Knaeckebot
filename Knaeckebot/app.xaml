@@ -20,6 +20,10 @@
         <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
         <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter"/>
+        <converters:KeyToKeyItemConverter x:Key="KeyToKeyItemConverter"/>
+        <converters:KeyArrayToStringConverter x:Key="KeyArrayToStringConverter"/>
+        <converters:VariableActionTypeToVisibilityConverter x:Key="VariableActionTypeToVisibilityConverter"/>
+        <converters:ListValueToDisplayConverter x:Key="ListValueToDisplayConverter"/>
 
         <ObjectDataProvider x:Key="MouseActionTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -51,6 +55,24 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
+        <ObjectDataProvider x:Key="FileSourceTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:FileSourceType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="FileDestinationTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:FileDestinationType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="FileEncodingTypeValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:FileEncodingType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
         <ObjectDataProvider x:Key="KeyValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="input:Key"/>
@@ -68,9 +90,6 @@
                 <x:Type TypeName="models:ComparisonOperator"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
-
-
-
 
         <ObjectDataProvider x:Key="KeyValuesSorted" MethodName="GetSortedKeyValues" ObjectType="{x:Type local:KeyHelper}"/>
 

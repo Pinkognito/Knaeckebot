@@ -79,6 +79,13 @@
                     </Grid>
                 </GroupBox>
 
+                <!-- Specific properties for file actions -->
+                <GroupBox Header="File Action Details" Margin="0,0,0,5" Padding="5"
+          Visibility="{Binding SelectedAction, Converter={StaticResource ObjectToTypeVisibilityConverter}, ConverterParameter=FileAction}">
+                    <local:FileActionDetailsControl/>
+                </GroupBox>
+
+
                 <!-- Specific properties for mouse actions -->
                 <GroupBox Header="Mouse Action Details" Margin="0,0,0,5" Padding="5"
                       Visibility="{Binding SelectedAction, Converter={StaticResource ObjectToTypeVisibilityConverter}, ConverterParameter=MouseAction}">

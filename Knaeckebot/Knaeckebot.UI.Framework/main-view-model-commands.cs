@@ -63,6 +63,8 @@ namespace Knaeckebot.ViewModels
                 () => IsSequenceSelected);
             AddIfActionCommand = new RelayCommand(() => AddSpecificAction(new IfAction { Name = "New If Action" }),
                 () => IsSequenceSelected);
+            AddFileActionCommand = new RelayCommand(() => AddSpecificAction(new FileAction { Name = "New File Action" }),
+                () => IsSequenceSelected);
         }
 
         #region Command Methods
@@ -744,6 +746,21 @@ namespace Knaeckebot.ViewModels
                             Name = "New If Action"
                         };
                         AddSpecificAction(ifAction);
+                        break;
+
+                    case ActionSelectionWindow.ActionType.FileAction:
+                        // Add new file action
+                        var fileAction = new FileAction
+                        {
+                            Name = "New File Action",
+                            SourceType = FileSourceType.Text,
+                            FilePath = string.Empty,
+                            DestinationType = FileDestinationType.Variable,
+                            DestinationVariableName = string.Empty,
+                            FileEncoding = FileEncodingType.UTF8,
+                            HandleIOException = true
+                        };
+                        AddSpecificAction(fileAction);
                         break;
 
                     default:

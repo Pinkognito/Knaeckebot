@@ -955,7 +955,6 @@ namespace Knaeckebot.ViewModels
         /// </summary>
         public ICommand PasteActionsCommand { get; private set; }
 
-
         /// <summary>
         /// Command to add a loop action
         /// </summary>
@@ -965,6 +964,11 @@ namespace Knaeckebot.ViewModels
         /// Command to add a if action
         /// </summary>
         public ICommand AddIfActionCommand { get; private set; }
+
+        /// <summary>
+        /// Command to add a file action
+        /// </summary>
+        public ICommand AddFileActionCommand { get; private set; }
 
         #endregion
     }
