@@ -153,6 +153,11 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
@@ -189,35 +194,86 @@
               IsEditable="True"
               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <!-- Index tracking option -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Track index:" Margin="0,0,5,0" 
-               VerticalAlignment="Center"
+                        <!-- CSV Mode option -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Use CSV mode:" Margin="0,0,5,0" 
+               VerticalAlignment="Center" 
                Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding SelectedAction.UseIndexVariable}" 
-              Margin="0,5,0,5"
-              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <StackPanel Grid.Row="4" Grid.Column="1" 
+                                  Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <CheckBox IsChecked="{Binding SelectedAction.UseCSVMode}" 
+                                    Margin="0,5,0,5" x:Name="UseCSVModeCheckBox"/>
+                            <TextBlock Text="CSV mode enables cell-by-cell iteration through rows and columns" 
+                                     Foreground="DarkGray" FontStyle="Italic" TextWrapping="Wrap" 
+                                     Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </StackPanel>
 
-                        <!-- Index variable -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Index variable:" Margin="0,0,5,5" 
+                        <!-- CSV Row Number Variable option -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Track row number:" Margin="0,0,5,0" 
                VerticalAlignment="Center"
-               Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <ComboBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,5"
+               Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding SelectedAction.UseRowNumberVariable}" 
+              Margin="0,5,0,5" x:Name="UseRowNumberCheckBox"
+              Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Row number variable -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Row variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseRowNumberVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="6" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding VariableNames}"
+              Text="{Binding SelectedAction.RowNumberVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              SelectedValue="{Binding SelectedAction.RowNumberVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              IsEditable="True"
+              Visibility="{Binding SelectedAction.UseRowNumberVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- CSV Column Number Variable option -->
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Track column number:" Margin="0,0,5,0" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding SelectedAction.UseColumnNumberVariable}" 
+              Margin="0,5,0,5" x:Name="UseColumnNumberCheckBox"
+              Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Column number variable -->
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Column variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseColumnNumberVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="8" Grid.Column="1" Margin="0,0,0,5"
+              ItemsSource="{Binding VariableNames}"
+              Text="{Binding SelectedAction.ColumnNumberVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              SelectedValue="{Binding SelectedAction.ColumnNumberVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              IsEditable="True"
+              Visibility="{Binding SelectedAction.UseColumnNumberVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Index tracking option (standard mode) -->
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Track index:" Margin="0,0,5,0" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding SelectedAction.UseIndexVariable}" 
+              Margin="0,5,0,5"
+              Visibility="{Binding SelectedAction.UseCSVMode, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+
+                        <!-- Index variable (standard mode) -->
+                        <TextBlock Grid.Row="10" Grid.Column="0" Text="Index variable:" Margin="0,0,5,5" 
+               VerticalAlignment="Center"
+               Visibility="{Binding SelectedAction.UseIndexVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="10" Grid.Column="1" Margin="0,0,0,5"
               ItemsSource="{Binding VariableNames}"
               Text="{Binding SelectedAction.IndexVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
               SelectedValue="{Binding SelectedAction.IndexVariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
               IsEditable="True"
-              Visibility="{Binding SelectedAction.UseVariableList, Converter={StaticResource BoolToVisibilityConverter}}"/>
+              Visibility="{Binding SelectedAction.UseIndexVariable, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="With condition:" Margin="0,0,5,0" 
+                        <TextBlock Grid.Row="11" Grid.Column="0" Text="With condition:" Margin="0,0,5,0" 
                VerticalAlignment="Center"/>
-                        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding SelectedAction.UseCondition}" 
+                        <CheckBox Grid.Row="11" Grid.Column="1" IsChecked="{Binding SelectedAction.UseCondition}" 
               Margin="0,5,0,5" />
 
                         <!-- Condition area (only visible when UseCondition is activated) -->
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Left side:" Margin="0,0,5,5" 
+                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Left side:" Margin="0,0,5,5" 
                VerticalAlignment="Center"
                Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Grid Grid.Row="7" Grid.Column="1" Margin="0,0,0,5"
+                        <Grid Grid.Row="12" Grid.Column="1" Margin="0,0,0,5"
           Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -246,18 +302,18 @@
                    Opacity="0.7" Margin="5,0,0,0" VerticalAlignment="Center"/>
                         </Grid>
 
-                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Comparison type:" Margin="0,0,5,5" 
+                        <TextBlock Grid.Row="13" Grid.Column="0" Text="Comparison type:" Margin="0,0,5,5" 
                VerticalAlignment="Center"
                Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <ComboBox Grid.Row="8" Grid.Column="1" Margin="0,0,0,5"
+                        <ComboBox Grid.Row="13" Grid.Column="1" Margin="0,0,0,5"
               ItemsSource="{Binding Source={StaticResource ComparisonOperatorValues}}"
               SelectedItem="{Binding SelectedAction.Operator}"
               Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Right side:" Margin="0,0,5,5" 
+                        <TextBlock Grid.Row="14" Grid.Column="0" Text="Right side:" Margin="0,0,5,5" 
                VerticalAlignment="Center"
                Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Grid Grid.Row="9" Grid.Column="1" Margin="0,0,0,5"
+                        <Grid Grid.Row="14" Grid.Column="1" Margin="0,0,0,5"
           Visibility="{Binding SelectedAction.UseCondition, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -287,11 +343,11 @@
                         </Grid>
 
                         <!-- Loop actions - Header with control options -->
-                        <TextBlock Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" Text="Actions in the loop:" 
+                        <TextBlock Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2" Text="Actions in the loop:" 
                Margin="0,10,0,5" FontWeight="Bold"/>
 
                         <!-- Control elements for loop actions -->
-                        <StackPanel Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,5">
+                        <StackPanel Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,5">
                             <TextBlock Text="{Binding SelectedAction.LoopActions.Count, StringFormat=Number of actions: {0}}"
                    VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <Button Content="Move up" Margin="0,0,5,0" Click="MoveLoopActionUp_Click"
@@ -307,12 +363,12 @@
                         </StackPanel>
 
                         <!-- Loop hint -->
-                        <TextBlock Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" 
+                        <TextBlock Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="2" 
                Text="Note: To add actions to the loop, copy actions from the main action list with Ctrl+C and paste using the Paste button above."
                TextWrapping="Wrap" Margin="0,5,0,5" FontStyle="Italic"/>
 
                         <!-- ListView for loop actions -->
-                        <ListView Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="2"
+                        <ListView Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="2"
               x:Name="LoopActionsListView"
               ItemsSource="{Binding SelectedAction.LoopActions}"
               SelectionMode="Extended"

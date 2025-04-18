@@ -50,6 +50,11 @@ namespace Knaeckebot.Models
         private string _currentItemVariableName = string.Empty;
         private bool _useIndexVariable = false;
         private string _indexVariableName = string.Empty;
+        private bool _useCSVMode = false;
+        private bool _useRowNumberVariable = false;
+        private string _rowNumberVariableName = string.Empty;
+        private bool _useColumnNumberVariable = false;
+        private string _columnNumberVariableName = string.Empty;
 
         /// <summary>
         /// Maximum number of loop iterations
@@ -276,6 +281,86 @@ namespace Knaeckebot.Models
         }
 
         /// <summary>
+        /// Indicates whether to use CSV mode for cell-by-cell iteration
+        /// </summary>
+        public bool UseCSVMode
+        {
+            get => _useCSVMode;
+            set
+            {
+                if (_useCSVMode != value)
+                {
+                    _useCSVMode = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether to track the current row number in a variable
+        /// </summary>
+        public bool UseRowNumberVariable
+        {
+            get => _useRowNumberVariable;
+            set
+            {
+                if (_useRowNumberVariable != value)
+                {
+                    _useRowNumberVariable = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Name of the variable to store the current row number
+        /// </summary>
+        public string RowNumberVariableName
+        {
+            get => _rowNumberVariableName;
+            set
+            {
+                if (_rowNumberVariableName != value)
+                {
+                    _rowNumberVariableName = value ?? string.Empty;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether to track the current column number in a variable
+        /// </summary>
+        public bool UseColumnNumberVariable
+        {
+            get => _useColumnNumberVariable;
+            set
+            {
+                if (_useColumnNumberVariable != value)
+                {
+                    _useColumnNumberVariable = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Name of the variable to store the current column number
+        /// </summary>
+        public string ColumnNumberVariableName
+        {
+            get => _columnNumberVariableName;
+            set
+            {
+                if (_columnNumberVariableName != value)
+                {
+                    _columnNumberVariableName = value ?? string.Empty;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// List of actions to be executed in the loop
         /// </summary>
         public ObservableCollection<ActionBase> LoopActions
@@ -347,7 +432,14 @@ namespace Knaeckebot.Models
                 // Check if we should loop through a List variable
                 if (UseVariableList)
                 {
-                    ExecuteListLoop(currentSequence, cancellationToken);
+                    if (UseCSVMode)
+                    {
+                        ExecuteCSVLoop(currentSequence, cancellationToken);
+                    }
+                    else
+                    {
+                        ExecuteListLoop(currentSequence, cancellationToken);
+                    }
                 }
                 else
                 {
@@ -364,6 +456,154 @@ namespace Knaeckebot.Models
             catch (Exception ex)
             {
                 LogManager.Log($"Error in loop action: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Executes a loop that iterates through CSV data cell by cell
+        /// </summary>
+        private void ExecuteCSVLoop(Sequence currentSequence, CancellationToken cancellationToken)
+        {
+            try
+            {
+                LogManager.Log($"Starting CSV loop with variable: {ListVariableName}");
+
+                // Find the List variable
+                var listVar = currentSequence.FindVariableByName(ListVariableName);
+                if (listVar == null)
+                {
+                    LogManager.Log($"List variable '{ListVariableName}' not found, aborting loop");
+                    return;
+                }
+
+                // Ensure it's a List type
+                if (listVar.Type != VariableType.List)
+                {
+                    LogManager.Log($"Variable '{ListVariableName}' is not a List type, aborting loop");
+                    return;
+                }
+
+                // Get the CSV data as a two-dimensional array
+                string[][] csvData = listVar.GetTableData();
+                LogManager.Log($"Found CSV data with {csvData.Length} rows");
+
+                if (csvData.Length == 0)
+                {
+                    LogManager.Log("CSV data is empty, aborting loop");
+                    return;
+                }
+
+                // Create current item variable if it doesn't exist
+                if (!string.IsNullOrEmpty(CurrentItemVariableName))
+                {
+                    var itemVar = currentSequence.FindVariableByName(CurrentItemVariableName);
+                    if (itemVar == null)
+                    {
+                        currentSequence.SetVariable(CurrentItemVariableName, string.Empty, VariableType.Text);
+                        LogManager.Log($"Created current item variable: {CurrentItemVariableName}");
+                    }
+                }
+
+                // Create row number variable if it doesn't exist and is requested
+                if (UseRowNumberVariable && !string.IsNullOrEmpty(RowNumberVariableName))
+                {
+                    var rowVar = currentSequence.FindVariableByName(RowNumberVariableName);
+                    if (rowVar == null)
+                    {
+                        currentSequence.SetVariable(RowNumberVariableName, "0", VariableType.Number);
+                        LogManager.Log($"Created row number variable: {RowNumberVariableName}");
+                    }
+                }
+
+                // Create column number variable if it doesn't exist and is requested
+                if (UseColumnNumberVariable && !string.IsNullOrEmpty(ColumnNumberVariableName))
+                {
+                    var colVar = currentSequence.FindVariableByName(ColumnNumberVariableName);
+                    if (colVar == null)
+                    {
+                        currentSequence.SetVariable(ColumnNumberVariableName, "0", VariableType.Number);
+                        LogManager.Log($"Created column number variable: {ColumnNumberVariableName}");
+                    }
+                }
+
+                // Track total iterations
+                int totalIterations = 0;
+
+                // Iterate through each cell in the CSV data
+                for (int rowIndex = 0; rowIndex < csvData.Length; rowIndex++)
+                {
+                    // Check if we've reached the maximum iterations
+                    if (totalIterations >= MaxIterations)
+                    {
+                        LogManager.Log($"Reached maximum iterations ({MaxIterations}), ending CSV loop");
+                        break;
+                    }
+
+                    string[] row = csvData[rowIndex];
+
+                    // Log the row data for debugging
+                    LogManager.Log($"Processing row {rowIndex} with {row.Length} columns");
+
+                    for (int colIndex = 0; colIndex < row.Length; colIndex++)
+                    {
+                        // Check cancellation at each cell
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            LogManager.Log("CSV loop action cancelled by user");
+                            throw new OperationCanceledException();
+                        }
+
+                        // Check if we've reached the maximum iterations
+                        if (totalIterations >= MaxIterations)
+                        {
+                            LogManager.Log($"Reached maximum iterations ({MaxIterations}) within row, ending CSV loop");
+                            break;
+                        }
+
+                        totalIterations++;
+                        CurrentIteration = totalIterations;
+                        LogManager.Log($"CSV loop iteration {CurrentIteration}: row {rowIndex}, column {colIndex}");
+
+                        // Current cell value
+                        string cellValue = row[colIndex];
+
+                        // Update current item variable
+                        if (!string.IsNullOrEmpty(CurrentItemVariableName))
+                        {
+                            currentSequence.SetVariable(CurrentItemVariableName, cellValue);
+                            LogManager.Log($"Set current item variable {CurrentItemVariableName} to '{cellValue}'");
+                        }
+
+                        // Update row number variable
+                        if (UseRowNumberVariable && !string.IsNullOrEmpty(RowNumberVariableName))
+                        {
+                            currentSequence.SetVariable(RowNumberVariableName, rowIndex.ToString(), VariableType.Number);
+                            LogManager.Log($"Set row number variable {RowNumberVariableName} to {rowIndex}");
+                        }
+
+                        // Update column number variable
+                        if (UseColumnNumberVariable && !string.IsNullOrEmpty(ColumnNumberVariableName))
+                        {
+                            currentSequence.SetVariable(ColumnNumberVariableName, colIndex.ToString(), VariableType.Number);
+                            LogManager.Log($"Set column number variable {ColumnNumberVariableName} to {colIndex}");
+                        }
+
+                        // Check condition if enabled
+                        if (UseCondition && !EvaluateCondition())
+                        {
+                            LogManager.Log("Condition for CSV loop continuation no longer met, breaking loop");
+                            return;
+                        }
+
+                        // Execute all actions in the loop
+                        ExecuteLoopActions(cancellationToken);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.Log($"Error in CSV loop: {ex.Message}");
                 throw;
             }
         }
@@ -660,7 +900,12 @@ namespace Knaeckebot.Models
                 ListVariableName = this.ListVariableName,
                 CurrentItemVariableName = this.CurrentItemVariableName,
                 UseIndexVariable = this.UseIndexVariable,
-                IndexVariableName = this.IndexVariableName
+                IndexVariableName = this.IndexVariableName,
+                UseCSVMode = this.UseCSVMode,
+                UseRowNumberVariable = this.UseRowNumberVariable,
+                RowNumberVariableName = this.RowNumberVariableName,
+                UseColumnNumberVariable = this.UseColumnNumberVariable,
+                ColumnNumberVariableName = this.ColumnNumberVariableName
             };
 
             // Clone loop actions
@@ -679,6 +924,10 @@ namespace Knaeckebot.Models
         {
             if (UseVariableList)
             {
+                if (UseCSVMode)
+                {
+                    return $"Loop: Through CSV '{ListVariableName}', {LoopActions.Count} actions, cell-by-cell";
+                }
                 return $"Loop: Through list '{ListVariableName}', {LoopActions.Count} actions";
             }
             else if (UseCondition)
