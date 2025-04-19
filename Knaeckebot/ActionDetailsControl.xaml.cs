@@ -14,6 +14,7 @@ using ListView = System.Windows.Controls.ListView;
 using CheckBox = System.Windows.Controls.CheckBox;
 using MouseAction = Knaeckebot.Models.MouseAction;
 using ComboBox = System.Windows.Controls.ComboBox;
+using RadioButton = System.Windows.Controls.RadioButton;
 
 namespace Knaeckebot.Controls
 {
@@ -187,6 +188,37 @@ namespace Knaeckebot.Controls
                         HideBranchActionDetails();
                     }
                 };
+            }
+        }
+
+        /// <summary>
+        /// Event handler for JsonAction source radio buttons
+        /// </summary>
+        private void JsonSourceRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainViewModel viewModel &&
+                viewModel.SelectedAction is JsonAction action)
+            {
+                LogManager.Log($"JsonSourceRadio_Checked called from {(sender as RadioButton)?.Content}", LogLevel.Debug);
+
+                if (sender == JsonVariableRadioButton)
+                {
+                    action.UseVariable = true;
+                    action.CheckClipboard = false;
+                    LogManager.Log("JsonAction source set to Variable", LogLevel.Debug);
+                }
+                else if (sender == JsonClipboardRadioButton)
+                {
+                    action.UseVariable = false;
+                    action.CheckClipboard = true;
+                    LogManager.Log("JsonAction source set to Clipboard", LogLevel.Debug);
+                }
+                else if (sender == JsonTemplateRadioButton)
+                {
+                    action.UseVariable = false;
+                    action.CheckClipboard = false;
+                    LogManager.Log("JsonAction source set to Template", LogLevel.Debug);
+                }
             }
         }
 
@@ -417,8 +449,26 @@ namespace Knaeckebot.Controls
                 LogManager.Log($"Populating JsonAction properties", LogLevel.Debug);
                 JsonActionPropertiesGroup.Visibility = Visibility.Visible;
 
+                // Set radio buttons for source
+                if (jsonAction.UseVariable)
+                {
+                    JsonVariableRadioButton.IsChecked = true;
+                    JsonVariableName.Text = jsonAction.VariableName;
+                    LogManager.Log($"Setting JSON source to Variable: {jsonAction.VariableName}", LogLevel.Debug);
+                }
+                else if (jsonAction.CheckClipboard)
+                {
+                    JsonClipboardRadioButton.IsChecked = true;
+                    LogManager.Log("Setting JSON source to Clipboard", LogLevel.Debug);
+                }
+                else
+                {
+                    JsonTemplateRadioButton.IsChecked = true;
+                    LogManager.Log("Setting JSON source to Template", LogLevel.Debug);
+                }
+
                 // Set properties
-                JsonCheckClipboard.IsChecked = jsonAction.CheckClipboard;
+                JsonCheckClipboard.IsChecked = jsonAction.CheckClipboard;  // This will be hidden by our radio button UI
                 JsonTemplate.Text = jsonAction.JsonTemplate;
                 JsonOffsetX.Text = jsonAction.OffsetX.ToString();
                 JsonOffsetY.Text = jsonAction.OffsetY.ToString();
@@ -800,8 +850,17 @@ namespace Knaeckebot.Controls
             {
                 LogManager.Log("Updating JsonAction properties", LogLevel.Debug);
 
-                // Set properties
-                jsonAction.CheckClipboard = JsonCheckClipboard.IsChecked == true;
+                // Set source properties based on radio buttons
+                jsonAction.UseVariable = JsonVariableRadioButton.IsChecked == true;
+                jsonAction.CheckClipboard = JsonClipboardRadioButton.IsChecked == true;
+
+                // Set variable name if using variable source
+                if (jsonAction.UseVariable)
+                {
+                    jsonAction.VariableName = JsonVariableName.Text;
+                }
+
+                // Set JSON template
                 jsonAction.JsonTemplate = JsonTemplate.Text;
 
                 // Parse numeric values

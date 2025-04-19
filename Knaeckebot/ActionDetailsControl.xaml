@@ -787,57 +787,95 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
+                        <!-- Source selection-->
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" Margin="0,0,5,5" 
-                               VerticalAlignment="Center"/>
-                        <CheckBox Grid.Row="0" Grid.Column="1" Content="Read from clipboard" 
-                             IsChecked="{Binding SelectedAction.CheckClipboard}"
-                             Margin="0,0,0,5"/>
+                                 VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                            <RadioButton Content="Variable" 
+                                GroupName="JsonSource"
+                                Margin="0,0,10,0"
+                                x:Name="JsonVariableRadioButton"
+                                Checked="JsonSourceRadio_Checked"/>
+                            <RadioButton Content="Clipboard" 
+                                GroupName="JsonSource"
+                                Margin="0,0,10,0"
+                                x:Name="JsonClipboardRadioButton"
+                                Checked="JsonSourceRadio_Checked"/>
+                            <RadioButton Content="Template" 
+                                GroupName="JsonSource"
+                                Margin="0,0,0,0"
+                                x:Name="JsonTemplateRadioButton"
+                                Checked="JsonSourceRadio_Checked"/>
+                        </StackPanel>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="JSON Template:" Margin="0,0,5,5" 
-                              VerticalAlignment="Top"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAction.JsonTemplate, UpdateSourceTrigger=PropertyChanged}" 
-                            Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="100"/>
+                        <!-- Variable selection -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Variable:" Margin="0,0,5,5" 
+                                 VerticalAlignment="Center"
+                                 Visibility="{Binding ElementName=JsonVariableRadioButton, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" 
+                                ItemsSource="{Binding VariableNames}"
+                                Text="{Binding SelectedAction.VariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                SelectedValue="{Binding SelectedAction.VariableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Margin="0,0,0,5"
+                                IsEditable="True"
+                                Visibility="{Binding ElementName=JsonVariableRadioButton, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="X-Offset:" Margin="0,0,5,5" 
-                              VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAction.OffsetX, UpdateSourceTrigger=PropertyChanged}" 
-                            Width="80" HorizontalAlignment="Left"
-                            Margin="0,0,0,5"/>
+                        <!-- JSON Template (now in row 2) -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="JSON Template:" Margin="0,0,5,5" 
+                                VerticalAlignment="Top"
+                                Visibility="{Binding ElementName=JsonTemplateRadioButton, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAction.JsonTemplate, UpdateSourceTrigger=PropertyChanged}" 
+                                Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="100"
+                                Visibility="{Binding ElementName=JsonTemplateRadioButton, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Y-Offset:" Margin="0,0,5,5" 
-                              VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAction.OffsetY, UpdateSourceTrigger=PropertyChanged}" 
-                            Width="80" HorizontalAlignment="Left"
-                            Margin="0,0,0,5"/>
+                        <!-- X-Offset (now in row 3) -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="X-Offset:" Margin="0,0,5,5" 
+                                VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAction.OffsetX, UpdateSourceTrigger=PropertyChanged}" 
+                                Width="80" HorizontalAlignment="Left"
+                                Margin="0,0,0,5"/>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
-                              VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SelectedAction.RetryCount, UpdateSourceTrigger=PropertyChanged}" 
-                            Width="80" HorizontalAlignment="Left"
-                            Margin="0,0,0,5"/>
+                        <!-- Y-Offset (now in row 4) -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Y-Offset:" Margin="0,0,5,5" 
+                                VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SelectedAction.OffsetY, UpdateSourceTrigger=PropertyChanged}" 
+                                Width="80" HorizontalAlignment="Left"
+                                Margin="0,0,0,5"/>
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
-                              VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SelectedAction.RetryWaitTime, UpdateSourceTrigger=PropertyChanged}" 
-                            Width="80" HorizontalAlignment="Left"
-                            Margin="0,0,0,5"/>
+                        <!-- Retries (now in row 5) -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
+                                VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SelectedAction.RetryCount, UpdateSourceTrigger=PropertyChanged}" 
+                                Width="80" HorizontalAlignment="Left"
+                                Margin="0,0,0,5"/>
 
-                        <TextBlock Grid.Row="6" Grid.Column="0" 
-                              VerticalAlignment="Center"/>
-                        <CheckBox Grid.Row="6" Grid.Column="1" Content="Continue on errors" 
-                             IsChecked="{Binding SelectedAction.ContinueOnError}"
-                             Margin="0,0,0,5"/>
+                        <!-- Wait time (now in row 6) -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
+                                VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding SelectedAction.RetryWaitTime, UpdateSourceTrigger=PropertyChanged}" 
+                                Width="80" HorizontalAlignment="Left"
+                                Margin="0,0,0,5"/>
 
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Note:" Margin="0,0,5,5" 
-                              VerticalAlignment="Top" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,5">
+                        <!-- Continue on errors (now in row 7) -->
+                        <TextBlock Grid.Row="7" Grid.Column="0" 
+                                VerticalAlignment="Center"/>
+                        <CheckBox Grid.Row="7" Grid.Column="1" Content="Continue on errors" 
+                               IsChecked="{Binding SelectedAction.ContinueOnError}"
+                               Margin="0,0,0,5"/>
+
+                        <!-- Note (now in row 8) -->
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Note:" Margin="0,0,5,5" 
+                                VerticalAlignment="Top" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="8" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,5">
                             In case of problems with the JSON format, the action will be retried after a waiting period.
                             After failed retry attempts, it will continue or abort depending on the setting.
                         </TextBlock>
 
-                        <WrapPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                        <!-- Example buttons (now in row 9) -->
+                        <WrapPanel Grid.Row="9" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Content="Sequence JSON Example" Click="GenerateSequenceJson_Click" Margin="0,0,5,5"/>
                             <Button Content="Sequence with Vars Example" Click="GenerateSequenceWithVarsJson_Click" Margin="0,0,5,5"/>
                             <Button Content="Click JSON Example" Click="GenerateClickJson_Click" Margin="0,0,5,5"/>
@@ -1449,48 +1487,59 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" Margin="0,0,5,5" 
-                                         VerticalAlignment="Center"/>
-                                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Read from clipboard" 
-                                         x:Name="JsonCheckClipboard"
-                                         Margin="0,0,0,5"/>
+                                    <!-- Variable selection (visible when Variable is selected) -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Variable:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                          x:Name="JsonVariableName"
+                                          ItemsSource="{Binding VariableNames}"
+                                          IsEditable="True"
+                                          Margin="0,0,0,5"/>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="JSON Template:" Margin="0,0,5,5" 
-                                         VerticalAlignment="Top"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="JsonTemplate"
+                                    <!-- Source checkbox (hidden for compatibility) -->
+                                    <CheckBox Grid.Row="2" Grid.Column="1" Content="Read from clipboard" 
+                                           x:Name="JsonCheckClipboard"
+                                           Margin="0,0,0,5"
+                                           Visibility="Collapsed"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="JSON Template:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Top"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="JsonTemplate"
                                          Margin="0,0,0,5" TextWrapping="Wrap" AcceptsReturn="True" Height="100"/>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="X-Offset:" Margin="0,0,5,5" 
-                                         VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="JsonOffsetX"
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="X-Offset:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="JsonOffsetX"
                                          Width="80" HorizontalAlignment="Left"
                                          Margin="0,0,0,5"/>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Y-Offset:" Margin="0,0,5,5" 
-                                         VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="JsonOffsetY"
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Y-Offset:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="JsonOffsetY"
                                          Width="80" HorizontalAlignment="Left"
                                          Margin="0,0,0,5"/>
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
-                                         VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="JsonRetryCount"
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Retries:" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="JsonRetryCount"
                                          Width="80" HorizontalAlignment="Left"
                                          Margin="0,0,0,5"/>
 
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
-                                         VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="JsonRetryWaitTime"
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Wait time (ms):" Margin="0,0,5,5" 
+                                           VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="7" Grid.Column="1" x:Name="JsonRetryWaitTime"
                                          Width="80" HorizontalAlignment="Left"
                                          Margin="0,0,0,5"/>
 
-                                    <TextBlock Grid.Row="6" Grid.Column="0" 
-                                         VerticalAlignment="Center"/>
-                                    <CheckBox Grid.Row="6" Grid.Column="1" Content="Continue on errors" 
-                                         x:Name="JsonContinueOnError"
-                                         Margin="0,0,0,5"/>
+                                    <TextBlock Grid.Row="8" Grid.Column="0" 
+                                           VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="8" Grid.Column="1" Content="Continue on errors" 
+                                          x:Name="JsonContinueOnError"
+                                          Margin="0,0,0,5"/>
                                 </Grid>
                             </GroupBox>
 

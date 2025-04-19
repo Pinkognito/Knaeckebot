@@ -21,6 +21,8 @@ namespace Knaeckebot.Models
         private int _offsetY = 0;
         private int _retryCount = 3;
         private int _retryWaitTime = 1000;
+        private bool _useVariable = false;
+        private string? _variableName = null;
 
         /// <summary>
         /// Indicates whether the clipboard should be checked for JSON
@@ -33,6 +35,38 @@ namespace Knaeckebot.Models
                 if (_checkClipboard != value)
                 {
                     _checkClipboard = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether to read JSON from a variable
+        /// </summary>
+        public bool UseVariable
+        {
+            get => _useVariable;
+            set
+            {
+                if (_useVariable != value)
+                {
+                    _useVariable = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Name of the variable containing JSON
+        /// </summary>
+        public string? VariableName
+        {
+            get => _variableName;
+            set
+            {
+                if (_variableName != value)
+                {
+                    _variableName = value;
                     OnPropertyChanged();
                 }
             }
@@ -168,12 +202,50 @@ namespace Knaeckebot.Models
                         }
                     }
 
-                    LogManager.Log($"Executing JSON action [ID: {Id}, Clipboard: {CheckClipboard}, Template: {(JsonTemplate != null ? "available" : "not available")}, ContinueOnError: {ContinueOnError}, Attempt: {currentRetry + 1}/{RetryCount + 1}]");
+                    LogManager.Log($"Executing JSON action [ID: {Id}, Variable: {UseVariable}, Clipboard: {CheckClipboard}, Template: {(JsonTemplate != null ? "available" : "not available")}, ContinueOnError: {ContinueOnError}, Attempt: {currentRetry + 1}/{RetryCount + 1}]");
 
-                    // Read JSON from clipboard if enabled
+                    // Read JSON from various sources
                     string? jsonText = null;
 
-                    if (CheckClipboard)
+                    // Read JSON from variable if enabled
+                    if (UseVariable)
+                    {
+                        var currentSequence = SequenceManager.CurrentSequence;
+                        if (currentSequence != null && !string.IsNullOrEmpty(VariableName))
+                        {
+                            var variable = currentSequence.FindVariableByName(VariableName);
+                            if (variable != null)
+                            {
+                                var variableValue = variable.GetValueAsString();
+                                if (!string.IsNullOrEmpty(variableValue))
+                                {
+                                    LogManager.Log($"Using JSON from variable: {VariableName}");
+                                    LogManager.Log($"Variable content (first 100 characters): {variableValue.Substring(0, Math.Min(variableValue.Length, 100))}");
+                                    jsonText = variableValue;
+                                }
+                                else
+                                {
+                                    LogManager.Log($"Variable '{VariableName}' is empty");
+                                    currentRetry++;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                LogManager.Log($"Variable '{VariableName}' not found");
+                                currentRetry++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            LogManager.Log("No current sequence or variable name is empty");
+                            currentRetry++;
+                            continue;
+                        }
+                    }
+                    // Read JSON from clipboard if enabled
+                    else if (CheckClipboard)
                     {
                         // Read text from clipboard
                         var clipboardText = GetClipboardText();
@@ -215,7 +287,7 @@ namespace Knaeckebot.Models
                     }
                     else
                     {
-                        LogManager.Log("Neither clipboard nor JSON template available");
+                        LogManager.Log("No valid source for JSON (variable, clipboard, or template)");
                         currentRetry++;
                         continue;
                     }
@@ -1017,6 +1089,8 @@ namespace Knaeckebot.Models
                 DelayBefore = this.DelayBefore,
                 IsEnabled = this.IsEnabled,
                 CheckClipboard = this.CheckClipboard,
+                UseVariable = this.UseVariable,
+                VariableName = this.VariableName,
                 JsonTemplate = this.JsonTemplate,
                 ContinueOnError = this.ContinueOnError,
                 OffsetX = this.OffsetX,
@@ -1031,7 +1105,12 @@ namespace Knaeckebot.Models
         /// </summary>
         public override string ToString()
         {
-            return $"JSON action: {(CheckClipboard ? "From clipboard" : "From template")}";
+            if (UseVariable)
+                return $"JSON action: From variable '{VariableName}'";
+            else if (CheckClipboard)
+                return "JSON action: From clipboard";
+            else
+                return "JSON action: From template";
         }
     }
 }
