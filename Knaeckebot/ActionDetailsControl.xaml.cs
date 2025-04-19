@@ -26,6 +26,9 @@ namespace Knaeckebot.Controls
         private ActionBase _selectedBranchAction;
         private string _branchContext = "";
 
+        // Flag to prevent recursive event handling
+        private bool _isUpdatingCheckboxes = false;
+
         public ActionDetailsControl()
         {
             InitializeComponent();
@@ -51,6 +54,109 @@ namespace Knaeckebot.Controls
 
             // Register for data context changed to monitor when the selected action changes
             this.DataContextChanged += ActionDetailsControl_DataContextChanged;
+        }
+
+        /// <summary>
+        /// Event handler for checkbox Checked event on actions
+        /// </summary>
+        private void Action_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdatingCheckboxes) return;
+
+            if (sender is CheckBox checkBox && checkBox.DataContext is ActionBase action)
+            {
+                // Handle checkbox checked event for multi-selection
+                HandleActionCheckboxChange(action, true);
+            }
+        }
+
+        /// <summary>
+        /// Event handler for checkbox Unchecked event on actions
+        /// </summary>
+        private void Action_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdatingCheckboxes) return;
+
+            if (sender is CheckBox checkBox && checkBox.DataContext is ActionBase action)
+            {
+                // Handle checkbox unchecked event for multi-selection
+                HandleActionCheckboxChange(action, false);
+            }
+        }
+
+        /// <summary>
+        /// Handles checkbox state changes for actions, applying the change to all selected actions
+        /// </summary>
+        private void HandleActionCheckboxChange(ActionBase action, bool isChecked)
+        {
+            LogManager.Log($"ActionCheckbox changed for {action.Name} to {isChecked}", LogLevel.Debug);
+
+            // Get the current ListView and determine which list we're in
+            ListView? listView = null;
+            ObservableCollection<ActionBase>? actionsList = null;
+            List<ActionBase>? selectedItems = null;
+
+            if (FindName("LoopActionsListView") is ListView loopListView &&
+                loopListView.ItemsSource is ObservableCollection<ActionBase> loopActions)
+            {
+                if (loopActions.Contains(action))
+                {
+                    listView = loopListView;
+                    actionsList = loopActions;
+                    selectedItems = listView.SelectedItems.Cast<ActionBase>().ToList();
+                    LogManager.Log("Action is in LoopActions", LogLevel.Debug);
+                }
+            }
+
+            if (FindName("ThenActionsListView") is ListView thenListView &&
+                thenListView.ItemsSource is ObservableCollection<ActionBase> thenActions)
+            {
+                if (thenActions.Contains(action))
+                {
+                    listView = thenListView;
+                    actionsList = thenActions;
+                    selectedItems = listView.SelectedItems.Cast<ActionBase>().ToList();
+                    LogManager.Log("Action is in ThenActions", LogLevel.Debug);
+                }
+            }
+
+            if (FindName("ElseActionsListView") is ListView elseListView &&
+                elseListView.ItemsSource is ObservableCollection<ActionBase> elseActions)
+            {
+                if (elseActions.Contains(action))
+                {
+                    listView = elseListView;
+                    actionsList = elseActions;
+                    selectedItems = listView.SelectedItems.Cast<ActionBase>().ToList();
+                    LogManager.Log("Action is in ElseActions", LogLevel.Debug);
+                }
+            }
+
+            if (listView != null && actionsList != null && selectedItems != null)
+            {
+                // Only apply to multiple items if the changed action is among the selected ones
+                if (selectedItems.Contains(action) && selectedItems.Count > 1)
+                {
+                    LogManager.Log($"Applying IsEnabled={isChecked} to {selectedItems.Count} selected actions", LogLevel.Debug);
+
+                    // Set flag to prevent recursive event handling
+                    _isUpdatingCheckboxes = true;
+
+                    try
+                    {
+                        foreach (var selectedAction in selectedItems)
+                        {
+                            // Update all selected actions to match the same enabled state
+                            selectedAction.IsEnabled = isChecked;
+                        }
+                    }
+                    finally
+                    {
+                        // Reset flag
+                        _isUpdatingCheckboxes = false;
+                    }
+                }
+            }
         }
 
         /// <summary>

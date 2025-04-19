@@ -398,7 +398,8 @@
                                         </Grid.ColumnDefinitions>
 
                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
-                                 VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                         VerticalAlignment="Center" Margin="0,0,5,0"
+                                         Checked="Action_Checked" Unchecked="Action_Unchecked"/>
 
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
@@ -1034,7 +1035,8 @@
                                         </Grid.ColumnDefinitions>
 
                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
-                                                 VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                                 VerticalAlignment="Center" Margin="0,0,3,0"
+                                                 Checked="Action_Checked" Unchecked="Action_Unchecked"/>
 
                                         <TextBlock Grid.Column="1" FontWeight="SemiBold">
                                             <Run Text="{Binding Name}"/>
@@ -1113,7 +1115,8 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}" 
-                                                         VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                                         VerticalAlignment="Center" Margin="0,0,3,0"
+                                                         Checked="Action_Checked" Unchecked="Action_Unchecked"/>
 
                                                 <TextBlock Grid.Column="1" FontWeight="SemiBold">
                                                     <Run Text="{Binding Name}"/>
