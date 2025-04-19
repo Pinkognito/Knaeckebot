@@ -1,4 +1,4 @@
-<UserControl x:Class="Knaeckebot.Controls.SequenceEditorControl"
+﻿<UserControl x:Class="Knaeckebot.Controls.SequenceEditorControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -67,17 +67,28 @@
 
                 <!-- Action editing left wrappable -->
                 <WrapPanel Orientation="Horizontal" Width="262">
-                    <Button x:Name="AddActionButton" Command="{Binding AddActionCommand}" Content="Add Action"/>
-                    <Button Command="{Binding MoveActionUpCommand}" Content="v" 
-                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}"/>
-                    <Button Command="{Binding MoveActionDownCommand}" Content="^" 
-                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}"/>
-                    <Button Command="{Binding DeleteActionCommand}" Content="X" 
-                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}"/>
+                    <Button x:Name="AddActionButton" Command="{Binding AddActionCommand}" Content="Add Action" 
+                           ToolTip="Add a new action to the sequence" Margin="2" Padding="3"/>
+                    <Button Command="{Binding MoveActionUpCommand}" Content="↑" FontSize="14" FontWeight="Bold"
+                            ToolTip="Move selected action(s) up"
+                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}" 
+                            Margin="2" Padding="5,2" Width="30"/>
+                    <Button Command="{Binding MoveActionDownCommand}" Content="↓" FontSize="14" FontWeight="Bold"
+                            ToolTip="Move selected action(s) down"
+                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}" 
+                            Margin="2" Padding="5,2" Width="30"/>
+                    <Button Command="{Binding DeleteActionCommand}" Content="🗑" FontSize="14"
+                            ToolTip="Delete selected action(s)"
+                            IsEnabled="{Binding ActionsListView.SelectedItems.Count, ElementName=ActionsListView, Converter={StaticResource GreaterThanZeroConverter}}" 
+                            Margin="2" Padding="5,2" Width="30"/>
                     <Button Command="{Binding CopyActionsCommand}" Content="Copy (Ctrl+C)" 
-                            IsEnabled="{Binding AreActionsSelected}"/>
+                            ToolTip="Copy selected action(s) to clipboard"
+                            IsEnabled="{Binding AreActionsSelected}"
+                            Margin="2" Padding="3"/>
                     <Button Command="{Binding PasteActionsCommand}" Content="Paste (Ctrl+V)" 
-                            IsEnabled="{Binding IsSequenceSelected}"/>
+                            ToolTip="Paste actions from clipboard"
+                            IsEnabled="{Binding IsSequenceSelected}"
+                            Margin="2" Padding="3"/>
                 </WrapPanel>
             </DockPanel>
         </Border>
