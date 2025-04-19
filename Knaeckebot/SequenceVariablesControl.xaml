@@ -63,6 +63,8 @@
                                 <DataTemplate>
                                     <TextBox Text="{Binding TextValue, UpdateSourceTrigger=PropertyChanged}" 
                                              Width="110"
+                                             Style="{StaticResource TextBoxMultilineStyle}"
+                                             ToolTip="Supports multiline text"
                                              Visibility="{Binding Type, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Text}"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
