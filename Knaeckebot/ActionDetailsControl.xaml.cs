@@ -2036,18 +2036,24 @@ namespace Knaeckebot.Controls
                 if (vm?.SelectedSequence != null)
                 {
                     sequenceName = vm.SelectedSequence.Name;
+
+                    // Tatsächliche Sequenzvariablen sammeln
+                    var variables = new Dictionary<string, string>();
+                    foreach (var variable in vm.SelectedSequence.Variables)
+                    {
+                        variables[variable.Name] = variable.GetValueAsString();
+                    }
+
+                    // Generate JSON template with actual variables
+                    jsonAction.JsonTemplate = JsonAction.CreateSequenceJson(sequenceName, variables);
+                    LogManager.Log($"JSON mit {variables.Count} tatsächlichen Sequenzvariablen erstellt", LogLevel.Info);
                 }
-
-                // Create example variables
-                var variables = new Dictionary<string, string>
+                else
                 {
-                    { "counter", "1" },
-                    { "text", "Hello World" },
-                    { "date", DateTime.Now.ToString("yyyy-MM-dd") }
-                };
-
-                // Generate JSON template
-                jsonAction.JsonTemplate = JsonAction.CreateSequenceJson(sequenceName, variables);
+                    // If no sequence is selected, generate JSON without variables
+                    jsonAction.JsonTemplate = JsonAction.CreateSequenceJson(sequenceName);
+                    LogManager.Log("Keine Sequenz ausgewählt, JSON ohne Variablen erstellt", LogLevel.Info);
+                }
             }
         }
 
